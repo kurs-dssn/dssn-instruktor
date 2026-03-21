@@ -491,14 +491,8 @@
         <!-- Login Screen -->
         <div id="loginScreen" class="login-container">
             <h2>Logg inn</h2>
-            
-            <div id="uploadSection" class="file-upload">
-                <label for="excelFile">Last opp instruktørdatabase (Excel-fil):</label>
-                <input type="file" id="excelFile" accept=".xlsx,.xls" required>
-                <p class="info-text">📁 Last opp "instr.xlsx"</p>
-            </div>
 
-            <div id="loginAlert" class="alert alert-error hidden"></div>
+            <div id="loginAlert" class="alert alert-info hidden"></div>
 
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
@@ -511,7 +505,7 @@
                     <input type="password" id="loginPassword" placeholder="Ditt passord" required>
                 </div>
 
-                <button type="submit" class="btn" id="loginBtn" disabled>Logg inn</button>
+                <button type="submit" class="btn" id="loginBtn">Logg inn</button>
             </form>
         </div>
 
@@ -548,7 +542,7 @@
             <div class="user-info">
                 <div class="user-details">
                     <h2 id="userName">Navn</h2>
-                    <p id="userEmail">epost@example.com</p>
+                    <p id="userEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2247524d515662475a434f524e470c414d4f">[email&#160;protected]</a></p>
                     <p id="userInfo">Klubb | Region</p>
                 </div>
                 <button class="logout-btn" onclick="logout()">Logg ut</button>
@@ -656,7 +650,7 @@
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAvDeuKD5CwxTrYRMyWlhN5zPNyMZFPdCA",
@@ -679,6 +673,65 @@
         let currentUser = null;
         let pendingLoginEmail = null;
 
+        // Load instructors from GitHub automatically on page load
+        async function loadInstructorsFromGitHub() {
+            try {
+                showAlert('loginAlert', '⏳ Laster instruktørdata...', 'info');
+                
+                const response = await fetch('https://kurs-dssn.github.io/dssn-instruktor/instr.xlsx');
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, {type: 'array'});
+                
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const rawData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                
+                let headerRowIndex = -1;
+                for (let i = 0; i < rawData.length; i++) {
+                    if (rawData[i][0] === '#' && rawData[i][1] === 'E-postadresse') {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+                
+                if (headerRowIndex === -1) {
+                    showAlert('loginAlert', '❌ Feil i instruktørdata. Kontakt kurs@dssn.no', 'error');
+                    return;
+                }
+                
+                instructors = [];
+                for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+                    const row = rawData[i];
+                    if (!row[1] || !row[2]) continue;
+                    
+                    const instructor = {
+                        InstruktørID: 'INSTR' + String(row[0]).padStart(3, '0'),
+                        Nummer: row[0],
+                        Epost: row[1],
+                        Fornavn: row[2],
+                        Etternavn: row[3],
+                        Navn: `${row[2]} ${row[3]}`,
+                        Klubb: row[4],
+                        Region: getRegion(row),
+                        Kurs: row[10],
+                        Tidsrom: row[11]
+                    };
+                    instructors.push(instructor);
+                }
+                
+                console.log(`✅ Loaded ${instructors.length} instructors from GitHub`);
+                showAlert('loginAlert', `✅ Klar til innlogging! ${instructors.length} instruktører lastet.`, 'success');
+                
+            } catch (error) {
+                console.error('Load instructors error:', error);
+                showAlert('loginAlert', '❌ Kunne ikke laste instruktørdata. Sjekk internettforbindelsen.', 'error');
+            }
+        }
+
+        // Load instructors when page loads
+        window.addEventListener('DOMContentLoaded', loadInstructorsFromGitHub);
+
         // Password strength checker
         document.getElementById('newPassword')?.addEventListener('input', function(e) {
             const password = e.target.value;
@@ -694,65 +747,6 @@
                 strengthDiv.textContent = '✅ Godt passord';
                 strengthDiv.className = 'password-strength strong';
             }
-        });
-
-        // Load Excel file
-        document.getElementById('excelFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const rawData = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                    
-                    let headerRowIndex = -1;
-                    for (let i = 0; i < rawData.length; i++) {
-                        if (rawData[i][0] === '#' && rawData[i][1] === 'E-postadresse') {
-                            headerRowIndex = i;
-                            break;
-                        }
-                    }
-                    
-                    if (headerRowIndex === -1) {
-                        showAlert('loginAlert', '❌ Finner ikke header-rad i Excel-filen', 'error');
-                        return;
-                    }
-                    
-                    instructors = [];
-                    for (let i = headerRowIndex + 1; i < rawData.length; i++) {
-                        const row = rawData[i];
-                        if (!row[1] || !row[2]) continue;
-                        
-                        const instructor = {
-                            InstruktørID: 'INSTR' + String(row[0]).padStart(3, '0'),
-                            Nummer: row[0],
-                            Epost: row[1],
-                            Fornavn: row[2],
-                            Etternavn: row[3],
-                            Navn: `${row[2]} ${row[3]}`,
-                            Klubb: row[4],
-                            Region: getRegion(row),
-                            Kurs: row[10],
-                            Tidsrom: row[11]
-                        };
-                        instructors.push(instructor);
-                    }
-                    
-                    document.getElementById('loginBtn').disabled = false;
-                    showAlert('loginAlert', `✅ Database lastet! ${instructors.length} instruktører funnet.`, 'success');
-                    
-                } catch (error) {
-                    showAlert('loginAlert', '❌ Feil ved lesing av Excel-fil. Sjekk filformat.', 'error');
-                    console.error(error);
-                }
-            };
-            reader.readAsArrayBuffer(file);
         });
 
         function getRegion(row) {
@@ -1037,11 +1031,4 @@
             });
             
             const wsAkt = XLSX.utils.aoa_to_sheet(aktData);
-            XLSX.utils.book_append_sheet(wb, wsAkt, 'Mine Aktiviteter');
-
-            const timestamp = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `DSSN_Mine_Aktiviteter_${timestamp}.xlsx`);
-        }
-    </script>
-</body>
-</html>
+            XLSX.utils.book_app
