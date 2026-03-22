@@ -187,6 +187,7 @@
         <div id="loginScreen">
             <div class="login-box">
                 <h2>Logg inn</h2>
+                <div id="loginError" class="alert alert-error hidden"></div>
                 <form id="loginForm">
                     <div class="form-group">
                         <label>E-post:</label>
@@ -199,8 +200,8 @@
                     <button type="submit" class="btn">Logg inn</button>
                 </form>
                 <div style="text-align: center; margin-top: 20px;">
-                    <a href="/cdn-cgi/l/email-protection#7a110f08093a1e09091454141545090f18101f190e473d161f170e5f484a0a1b090915081e5f484a575f484a3e2929345f484a3314090e080f110eb9c2080a15080e1b165c18151e0347321f135f48395f4a3b5f4a3b301f1d5f484a121b085f484a1d161f170e5f484a0a1b090915081e1f0e5f484a17130e0e5f484a0e13165f484a3e2929345f484a3314090e080f110eb9c2080a15080e1b16545f4a3b5f4a3b37130e0e5f484a18080f111f08141b0c145f484a521f570a15090e535f493b5f484a5f4a3b5f4a3b370c12" style="color: #FFD700; text-decoration: none; font-size: 0.9em;">
-                        Glemt passord? Kontakt <span class="__cf_email__" data-cfemail="92f9e7e0e1d2f6e1e1fcbcfcfd">[email&#160;protected]</span>
+                    <a href="mailto:kurs@dssn.no?subject=Glemt%20passord%20-%20DSSN%20Instruktørportal&body=Hei%2C%0A%0AJeg%20har%20glemt%20passordet%20mitt%20til%20DSSN%20Instruktørportal.%0A%0AMitt%20brukernavn%20(e-post)%3A%20%0A%0AMvh" style="color: #FFD700; text-decoration: none; font-size: 0.9em;">
+                        Glemt passord? Kontakt kurs@dssn.no
                     </a>
                 </div>
             </div>
@@ -352,14 +353,25 @@
             }
         }
 
+        function showLoginError(msg) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = msg;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Clear previous error
+            document.getElementById('loginError').classList.add('hidden');
+            
             const email = document.getElementById('email').value.toLowerCase().trim();
             const password = document.getElementById('password').value;
             
             const user = instructors.find(i => i.email.toLowerCase() === email);
             if (!user) {
-                alert('❌ E-postadressen finnes ikke i systemet. Kontakt kurs@dssn.no hvis dette er feil.');
+                showLoginError('❌ E-postadressen finnes ikke i systemet. Kontakt kurs@dssn.no hvis dette er feil.');
                 return;
             }
             
@@ -368,7 +380,7 @@
                 if (doc.exists) {
                     const hash = CryptoJS.SHA256(password).toString();
                     if (hash !== doc.data().password) {
-                        alert('❌ Feil passord. Prøv igjen eller bruk "Glemt passord"-lenken.');
+                        showLoginError('❌ Feil passord. Prøv igjen eller bruk "Glemt passord"-lenken.');
                         return;
                     }
                 } else {
@@ -391,7 +403,7 @@
                 updateStats();
                 loadHistory();
             } catch (err) {
-                alert('❌ Feil ved innlogging. Sjekk internettforbindelsen og prøv igjen.');
+                showLoginError('❌ Feil ved innlogging. Sjekk internettforbindelsen og prøv igjen.');
                 console.error(err);
             }
         });
