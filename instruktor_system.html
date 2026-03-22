@@ -783,57 +783,71 @@
         }
 
         async function downloadInstruktorCard() {
-            // Kredittkort størrelse: 85.6mm x 53.98mm (3.37" x 2.13")
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: [85.6, 53.98]
-            });
-
-            // Bakgrunn
-            pdf.setFillColor(42, 42, 42); // DSSN gray
-            pdf.rect(0, 0, 85.6, 53.98, 'F');
-
-            // Gul header stripe
-            pdf.setFillColor(255, 215, 0); // DSSN yellow
-            pdf.rect(0, 0, 85.6, 8, 'F');
-
-            // Last DSSN logo
-            const logoUrl = 'https://raw.githubusercontent.com/kurs-dssn/dssn-instruktor/main/DSSN%20logo.png';
             try {
-                const response = await fetch(logoUrl);
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        try {
-                            pdf.addImage(reader.result, 'PNG', 3, 10, 15, 15);
-                        } catch (e) {
-                            console.log('Logo kunne ikke legges til');
-                        }
-                        finishCard();
-                    };
-                    reader.readAsDataURL(blob);
+                if (!currentUser) {
+                    alert('Feil: Brukerdata ikke lastet. Prøv å refresh siden.');
                     return;
                 }
-            } catch (e) {
-                console.log('Logo kunne ikke lastes');
-            }
-            finishCard();
 
-            function finishCard() {
-                // DSSN tekstlogo i header
-                pdf.setFontSize(10);
-                pdf.setTextColor(26, 26, 26);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text('DSSN INSTRUKTØRKORT', 42.8, 5, { align: 'center' });
+                console.log('Starter generering av instruktørkort...');
+                
+                // Kredittkort størrelse: 85.6mm x 53.98mm (3.37" x 2.13")
+                const { jsPDF } = window.jspdf;
+                if (!jsPDF) {
+                    alert('Feil: PDF-bibliotek ikke lastet. Refresh siden.');
+                    return;
+                }
+                
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: [85.6, 53.98]
+                });
 
-                // Instruktør info
-                pdf.setFontSize(14);
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text(currentUser.Navn, 20, 15);
+                // Bakgrunn
+                pdf.setFillColor(42, 42, 42); // DSSN gray
+                pdf.rect(0, 0, 85.6, 53.98, 'F');
+
+                // Gul header stripe
+                pdf.setFillColor(255, 215, 0); // DSSN yellow
+                pdf.rect(0, 0, 85.6, 8, 'F');
+
+                // Last DSSN logo
+                const logoUrl = 'https://raw.githubusercontent.com/kurs-dssn/dssn-instruktor/main/DSSN%20logo.png';
+                try {
+                    const response = await fetch(logoUrl);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            try {
+                                pdf.addImage(reader.result, 'PNG', 3, 10, 15, 15);
+                            } catch (e) {
+                                console.log('Logo kunne ikke legges til:', e);
+                            }
+                            finishCard();
+                        };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Logo kunne ikke lastes:', e);
+                }
+                finishCard();
+
+                function finishCard() {
+                    try {
+                        // DSSN tekstlogo i header
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(26, 26, 26);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.text('DSSN INSTRUKTØRKORT', 42.8, 5, { align: 'center' });
+
+                        // Instruktør info
+                        pdf.setFontSize(14);
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.text(currentUser.Navn, 20, 15);
 
                 pdf.setFontSize(9);
                 pdf.setFont('helvetica', 'normal');
@@ -875,7 +889,17 @@
                 pdf.text('Dynamisk Sportsskyting Norge', 42.8, 52, { align: 'center' });
 
                 // Last ned
+                console.log('Lagrer PDF...');
                 pdf.save(`DSSN_Instruktorkort_${currentUser.Nummer}.pdf`);
+                console.log('PDF lagret!');
+                    } catch (error) {
+                        console.error('Feil i finishCard:', error);
+                        alert('Feil ved generering av kort: ' + error.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Feil i downloadInstruktorCard:', error);
+                alert('Feil ved generering av instruktørkort: ' + error.message);
             }
         }
 
