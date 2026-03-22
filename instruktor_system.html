@@ -799,23 +799,31 @@
             pdf.setFillColor(255, 215, 0); // DSSN yellow
             pdf.rect(0, 0, 85.6, 8, 'F');
 
-            // DSSN logo (hvis tilgjengelig som base64)
-            const logoUrl = 'https://raw.githubusercontent.com/kurs-dssn/dssn-instruktor/main/dssn_logo.png';
+            // Last DSSN logo
+            const logoUrl = 'https://raw.githubusercontent.com/kurs-dssn/dssn-instruktor/main/DSSN%20logo.png';
             try {
-                const img = await fetch(logoUrl);
-                const blob = await img.blob();
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    pdf.addImage(reader.result, 'PNG', 3, 10, 15, 15);
-                    finishCard();
-                };
-                reader.readAsDataURL(blob);
-            } catch {
-                finishCard();
+                const response = await fetch(logoUrl);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        try {
+                            pdf.addImage(reader.result, 'PNG', 3, 10, 15, 15);
+                        } catch (e) {
+                            console.log('Logo kunne ikke legges til');
+                        }
+                        finishCard();
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+            } catch (e) {
+                console.log('Logo kunne ikke lastes');
             }
+            finishCard();
 
             function finishCard() {
-                // Tittel
+                // DSSN tekstlogo i header
                 pdf.setFontSize(10);
                 pdf.setTextColor(26, 26, 26);
                 pdf.setFont('helvetica', 'bold');
