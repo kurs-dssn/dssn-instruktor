@@ -178,28 +178,32 @@
                 </form>
                 <div style="text-align: center; margin-top: 20px;">
                     <a id="forgotPasswordLink" href="#" style="color: #FFD700; text-decoration: none; font-size: 0.9em;">
-                        Glemt passord? Kontakt kurs@dssn.no
+                        Glemt passord? Kontakt <span class="__cf_email__" data-cfemail="d5bea0a7a695b1a6a6bbfbbbba">[email&#160;protected]</span>
                     </a>
                 </div>
             </div>
         </div>
         <div id="dashboard" class="dashboard">
             <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px; border-left: 4px solid #FFD700;">
-                <h3 style="color: #FFD700; margin-bottom: 15px;">📋 Slik bruker du instruktørportalen</h3>
-                <p style="margin-bottom: 10px; line-height: 1.6;">Velkommen til DSSN Instruktørportal! Her registrerer du dine aktiviteter som instruktør for å opprettholde din instruktørstatus.</p>
-                <p style="margin-bottom: 10px; line-height: 1.6;"><strong>Krav:</strong> Du må oppnå minimum <strong>6 poeng per kalenderår</strong> for å beholde instruktørstatus.</p>
-                <p style="margin-bottom: 10px; line-height: 1.6;"><strong>Poenggivende aktiviteter:</strong></p>
-                <ul style="margin-left: 20px; margin-bottom: 10px; line-height: 1.8;">
-                    <li><strong>Godkjenningskurs</strong> – 3 poeng</li>
-                    <li><strong>Sikkerhetskurs</strong> – 3 poeng</li>
-                    <li><strong>Organisert trening</strong> – 1 poeng</li>
-                </ul>
-                <p style="line-height: 1.6;"><strong>OBS:</strong> Aktiviteter kan kun registreres inntil 2 måneder tilbake i tid. Registrer derfor løpende!</p>
+                <h3 onclick="toggleInstructions()" style="color: #FFD700; margin-bottom: 15px; cursor: pointer; user-select: none;">
+                    📋 Slik bruker du instruktørportalen <span id="toggleIcon">▼</span>
+                </h3>
+                <div id="instructionsContent">
+                    <p style="margin-bottom: 10px; line-height: 1.6;">Velkommen til DSSN Instruktørportal! Her registrerer du dine aktiviteter som instruktør for å opprettholde din instruktørstatus.</p>
+                    <p style="margin-bottom: 10px; line-height: 1.6;"><strong>Krav:</strong> Du må oppnå minimum <strong>6 poeng per kalenderår</strong> for å beholde instruktørstatus.</p>
+                    <p style="margin-bottom: 10px; line-height: 1.6;"><strong>Poenggivende aktiviteter:</strong></p>
+                    <ul style="margin-left: 20px; margin-bottom: 10px; line-height: 1.8;">
+                        <li><strong>Godkjenningskurs</strong> – 3 poeng</li>
+                        <li><strong>Sikkerhetskurs</strong> – 3 poeng</li>
+                        <li><strong>Organisert trening</strong> – 1 poeng</li>
+                    </ul>
+                    <p style="line-height: 1.6;"><strong>OBS:</strong> Aktiviteter kan kun registreres inntil 2 måneder tilbake i tid. Registrer derfor løpende!</p>
+                </div>
             </div>
             <div class="user-info">
                 <div>
                     <h2 id="userName">Navn</h2>
-                    <p id="userEmail">epost@example.com</p>
+                    <p id="userEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="16736679656256736e777b667a733875797b">[email&#160;protected]</a></p>
                     <p id="userInfo">Klubb | Region</p>
                 </div>
                 <button class="logout-btn" onclick="logout()">Logg ut</button>
@@ -225,9 +229,6 @@
                     <h3>Status</h3>
                     <div class="value" id="statusBadge" style="font-size: 1.5em;">✅</div>
                 </div>
-            </div>
-            <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #FFD700;">
-                <strong>ℹ️ Aktivitetskrav:</strong> Minimum 6 poeng pr. kalenderår for å opprettholde instruktørstatus.
             </div>
             <form class="activity-form" onsubmit="registerActivity(event)">
                 <h3 style="color: var(--dssn-yellow); margin-bottom: 20px;">Registrer ny aktivitet</h3>
@@ -264,14 +265,19 @@
                 <button type="submit" class="btn">Registrer aktivitet</button>
             </form>
             <div class="activity-list">
-                <h3 style="color: var(--dssn-yellow); margin-bottom: 20px;">Mine aktiviteter</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: var(--dssn-yellow); margin: 0;">Mine aktiviteter</h3>
+                    <button onclick="downloadMyActivities()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
+                        📥 Last ned Excel
+                    </button>
+                </div>
                 <div id="activityListContent">
                     <p style="color: var(--text-gray);">Ingen aktiviteter registrert ennå.</p>
                 </div>
             </div>
         </div>
     </div>
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         const firebaseConfig = {
             apiKey: "AIzaSyAvDeuKD5CwxTrYRMyWlhN5zPNyMZFPdCA",
             authDomain: "dssn-instruktor.firebaseapp.com",
@@ -487,6 +493,71 @@
             }
         }
 
+        function toggleInstructions() {
+            const content = document.getElementById('instructionsContent');
+            const icon = document.getElementById('toggleIcon');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+
+        function downloadMyActivities() {
+            if (activities.length === 0) {
+                alert('Du har ingen aktiviteter å laste ned ennå.');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            
+            const data = [
+                ['DSSN Instruktørportal - Mine aktiviteter'],
+                [''],
+                ['Instruktør:', currentUser.Navn],
+                ['E-post:', currentUser.Epost],
+                ['Klubb:', currentUser.Klubb || '-'],
+                ['Region:', currentUser.Region],
+                [''],
+                ['Dato', 'Type aktivitet', 'Poeng', 'Sted', 'Antall deltakere', 'Beskrivelse']
+            ];
+
+            const sorted = activities.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
+            
+            sorted.forEach(a => {
+                data.push([
+                    new Date(a.Dato).toLocaleDateString('no-NO'),
+                    a.Type,
+                    a.Poeng,
+                    a.Sted,
+                    a.AntallDeltakere,
+                    a.Beskrivelse
+                ]);
+            });
+
+            data.push(['']);
+            data.push(['Totalt poeng i år:', activities.filter(a => new Date(a.Dato).getFullYear() === new Date().getFullYear()).reduce((sum, a) => sum + a.Poeng, 0)]);
+            data.push(['Totalt poeng (alle år):', activities.reduce((sum, a) => sum + a.Poeng, 0)]);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            ws['!cols'] = [
+                {wch: 12},
+                {wch: 25},
+                {wch: 8},
+                {wch: 20},
+                {wch: 18},
+                {wch: 50}
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Mine aktiviteter');
+
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, 'DSSN_Mine_Aktiviteter_' + date + '.xlsx');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             loadInstructors();
             const today = new Date();
@@ -503,4 +574,3 @@
     </script>
 </body>
 </html>
-
