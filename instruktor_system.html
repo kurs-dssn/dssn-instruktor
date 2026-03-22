@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DSSN Instruktørportal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -333,11 +334,16 @@
                 <button type="submit" class="btn">Registrer aktivitet</button>
             </form>
             <div class="activity-list">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--dssn-yellow); margin: 0;">Mine aktiviteter</h3>
-                    <button onclick="downloadMyActivities()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
-                        📥 Last ned Excel
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="downloadInstruktorCard()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em; background: #4CAF50;">
+                            🎫 Last ned instruktørkort
+                        </button>
+                        <button onclick="downloadMyActivities()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
+                            📥 Last ned Excel
+                        </button>
+                    </div>
                 </div>
                 <div id="activityListContent">
                     <p style="color: var(--text-gray);">Ingen aktiviteter registrert ennå.</p>
@@ -774,6 +780,95 @@
 
             const date = new Date().toISOString().split('T')[0];
             XLSX.writeFile(wb, 'DSSN_Mine_Aktiviteter_' + date + '.xlsx');
+        }
+
+        async function downloadInstruktorCard() {
+            // Kredittkort størrelse: 85.6mm x 53.98mm (3.37" x 2.13")
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [85.6, 53.98]
+            });
+
+            // Bakgrunn
+            pdf.setFillColor(42, 42, 42); // DSSN gray
+            pdf.rect(0, 0, 85.6, 53.98, 'F');
+
+            // Gul header stripe
+            pdf.setFillColor(255, 215, 0); // DSSN yellow
+            pdf.rect(0, 0, 85.6, 8, 'F');
+
+            // DSSN logo (hvis tilgjengelig som base64)
+            const logoUrl = 'https://raw.githubusercontent.com/kurs-dssn/dssn-instruktor/main/dssn_logo.png';
+            try {
+                const img = await fetch(logoUrl);
+                const blob = await img.blob();
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    pdf.addImage(reader.result, 'PNG', 3, 10, 15, 15);
+                    finishCard();
+                };
+                reader.readAsDataURL(blob);
+            } catch {
+                finishCard();
+            }
+
+            function finishCard() {
+                // Tittel
+                pdf.setFontSize(10);
+                pdf.setTextColor(26, 26, 26);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('DSSN INSTRUKTØRKORT', 42.8, 5, { align: 'center' });
+
+                // Instruktør info
+                pdf.setFontSize(14);
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(currentUser.Navn, 20, 15);
+
+                pdf.setFontSize(9);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(currentUser.Klubb || 'Ingen klubb', 20, 20);
+                pdf.text(currentUser.Region, 20, 24);
+
+                // Instruktørnummer
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Instruktørnummer:', 20, 32);
+                pdf.setTextColor(255, 215, 0);
+                pdf.setFontSize(16);
+                pdf.text(String(currentUser.Nummer).padStart(3, '0'), 20, 38);
+
+                // Status og poeng
+                const currentYear = new Date().getFullYear();
+                const yearPoints = activities.filter(a => new Date(a.Dato).getFullYear() === currentYear).reduce((sum, a) => sum + a.Poeng, 0);
+                const totalPoints = activities.reduce((sum, a) => sum + a.Poeng, 0);
+                
+                let status = yearPoints >= 6 ? '✓ AKTIV' : '✗ INAKTIV';
+                let statusColor = yearPoints >= 6 ? [76, 175, 80] : [244, 67, 54];
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(9);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text('Status ' + currentYear + ':', 20, 45);
+                pdf.setTextColor(...statusColor);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(status, 20, 49);
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(8);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(`${yearPoints}/6 poeng (Totalt: ${totalPoints})`, 45, 49);
+
+                // Footer
+                pdf.setFontSize(6);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text('Dynamisk Sportsskyting Norge', 42.8, 52, { align: 'center' });
+
+                // Last ned
+                pdf.save(`DSSN_Instruktorkort_${currentUser.Nummer}.pdf`);
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
