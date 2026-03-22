@@ -434,16 +434,6 @@
             margin-bottom: 20px;
         }
 
-        .firebase-badge {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid var(--dssn-yellow);
-            color: var(--dssn-yellow);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            display: inline-block;
-            margin-top: 10px;
-        }
 
         @media (max-width: 768px) {
             .form-row {
@@ -486,7 +476,6 @@
             <img src="https://kurs-dssn.github.io/dssn-instruktor/DSSN%20logo.png" alt="DSSN Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;">
             <h1>DSSN Instruktørportal</h1>
             <p>Dynamisk Sportsskyting Norge - Aktivitetsregistrering</p>
-            <span class="firebase-badge">🔥 Firebase Cloud Edition</span>
         </div>
 
         <!-- Login Screen -->
@@ -509,8 +498,8 @@
                 <button type="submit" class="btn" id="loginBtn">Logg inn</button>
             </form>
             <div style="text-align: center; margin-top: 20px;">
-                <a href="mailto:kurs@dssn.no?subject=Glemt%20passord%20-%20DSSN%20Instruktørportal&body=Hei%2C%0A%0AJeg%20har%20glemt%20passordet%20mitt%20til%20DSSN%20Instruktørportal.%0A%0AMitt%20brukernavn%20(e-post)%3A%20%0A%0AMvh" style="color: #FFD700; text-decoration: none; font-size: 0.9em;">
-                    Glemt passord? Kontakt kurs@dssn.no
+                <a href="/cdn-cgi/l/email-protection#ea819f9899aa8e999984c48485d5999f88808f899ed7ad868f879ecfd8da9a8b999985988ecfd8dac7cfd8daaeb9b9a4cfd8daa384999e989f819e2952989a85989e8b86cc88858e93d7a28f83cfd8a9cfdaabcfdaaba08f8dcfd8da828b98cfd8da8d868f879ecfd8da9a8b999985988e8f9ecfd8da87839e9ecfd8da9e8386cfd8daaeb9b9a4cfd8daa384999e989f819e2952989a85989e8b86c4cfdaabcfdaaba7839e9ecfd8da88989f818f98848b9c84cfd8dac28fc79a85999ec3cfd9abcfd8dacfdaabcfdaaba79c82" style="color: #FFD700; text-decoration: none; font-size: 0.9em;">
+                    Glemt passord? Kontakt <span class="__cf_email__" data-cfemail="1b706e69685b7f686875357574">[email&#160;protected]</span>
                 </a>
             </div>
         </div>
@@ -544,6 +533,28 @@
 
         <!-- Dashboard -->
         <div id="dashboard" class="dashboard">
+            <!-- Instruksjoner -->
+            <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px; border-left: 4px solid #FFD700;">
+                <h3 style="color: #FFD700; margin-bottom: 15px;">📋 Slik bruker du instruktørportalen</h3>
+                <p style="margin-bottom: 10px; line-height: 1.6;">
+                    Velkommen til DSSN Instruktørportal! Her registrerer du dine aktiviteter som instruktør for å opprettholde din instruktørstatus.
+                </p>
+                <p style="margin-bottom: 10px; line-height: 1.6;">
+                    <strong>Krav:</strong> Du må oppnå minimum <strong>6 poeng per kalenderår</strong> for å beholde instruktørstatus.
+                </p>
+                <p style="margin-bottom: 10px; line-height: 1.6;">
+                    <strong>Poenggivende aktiviteter:</strong>
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 10px; line-height: 1.8;">
+                    <li><strong>Godkjenningskurs</strong> – 3 poeng</li>
+                    <li><strong>Sikkerhetskurs</strong> – 3 poeng</li>
+                    <li><strong>Organisert trening</strong> – 1 poeng</li>
+                </ul>
+                <p style="line-height: 1.6;">
+                    <strong>OBS:</strong> Aktiviteter kan kun registreres inntil 2 måneder tilbake i tid. Registrer derfor løpende!
+                </p>
+            </div>
+
             <!-- User Info -->
             <div class="user-info">
                 <div class="user-details">
@@ -559,6 +570,10 @@
                 <div class="stat-card">
                     <h3>Totalt poeng i år</h3>
                     <div class="value" id="totalPoints">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Totalt poeng (alle år)</h3>
+                    <div class="value" id="totalPointsAllTime">0</div>
                 </div>
                 <div class="stat-card">
                     <h3>Antall kurs</h3>
@@ -589,6 +604,10 @@
                     ✅ Aktivitet registrert!
                 </div>
 
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #FFD700;">
+                    <strong>ℹ️ Aktivitetskrav:</strong> Minimum 6 poeng pr. kalenderår for å opprettholde instruktørstatus.
+                </div>
+
                 <form class="activity-form" onsubmit="registerActivity(event)">
                     <div class="form-row">
                         <div class="form-group">
@@ -599,24 +618,22 @@
                             <label for="activityType">Type aktivitet:</label>
                             <select id="activityType" required onchange="updatePoints()">
                                 <option value="">-- Velg type --</option>
-                                <option value="Kurs (hovedinstruktør)" data-points="3">Kurs (hovedinstruktør) - 3p</option>
-                                <option value="Kurs (assistent)" data-points="2">Kurs (assistent) - 2p</option>
-                                <option value="Trening" data-points="1">Trening - 1p</option>
-                                <option value="Regelverk-oppdatering" data-points="2">Regelverk-oppdatering - 2p</option>
-                                <option value="Metodikkutvikling" data-points="2">Metodikkutvikling - 2p</option>
+                                <option value="Godkjenningskurs" data-points="3">Godkjenningskurs - 3p</option>
+                                <option value="Sikkerhetskurs" data-points="3">Sikkerhetskurs - 3p</option>
+                                <option value="Organisert trening" data-points="1">Organisert trening - 1p</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="activityDescription">Beskrivelse:</label>
-                        <textarea id="activityDescription" placeholder="F.eks. IPSC Level 1 kurs, ukentlig klubbtrening..." required></textarea>
+                        <textarea id="activityDescription" placeholder="Beskriv kort hvilke kurs du har gjennomført, eller oppgi hvem som deltok på treningen..." required></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="activityLocation">Sted:</label>
-                            <input type="text" id="activityLocation" placeholder="F.eks. Oslo Pistolklubb" required>
+                            <input type="text" id="activityLocation" placeholder="F.eks. Tromsø" required>
                         </div>
                         <div class="form-group">
                             <label for="activityParticipants">Antall deltakere:</label>
@@ -656,7 +673,7 @@
         </div>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAvDeuKD5CwxTrYRMyWlhN5zPNyMZFPdCA",
@@ -736,7 +753,20 @@
         }
 
         // Load instructors when page loads
-        window.addEventListener('DOMContentLoaded', loadInstructorsFromGitHub);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadInstructorsFromGitHub();
+            
+            // Set date limits: ikke lenger tilbake enn 2 måneder
+            const today = new Date();
+            const twoMonthsAgo = new Date();
+            twoMonthsAgo.setMonth(today.getMonth() - 2);
+            
+            const dateInput = document.getElementById('activityDate');
+            if (dateInput) {
+                dateInput.min = twoMonthsAgo.toISOString().split('T')[0];
+                dateInput.max = today.toISOString().split('T')[0];
+            }
+        });
 
         // Password strength checker
         document.getElementById('newPassword')?.addEventListener('input', function(e) {
@@ -904,12 +934,19 @@
                 a.InstruktørID === currentUser.InstruktørID &&
                 new Date(a.Dato).getFullYear() === currentYear
             );
+            
+            // Alle aktiviteter (alle år)
+            const allUserActivities = activities.filter(a => 
+                a.InstruktørID === currentUser.InstruktørID
+            );
 
             const totalPoints = userActivities.reduce((sum, a) => sum + (a.Poeng || 0), 0);
-            const totalCourses = userActivities.filter(a => a.Type.includes('Kurs')).length;
-            const totalTrainings = userActivities.filter(a => a.Type === 'Trening').length;
+            const totalPointsAllTime = allUserActivities.reduce((sum, a) => sum + (a.Poeng || 0), 0);
+            const totalCourses = userActivities.filter(a => a.Type === 'Godkjenningskurs' || a.Type === 'Sikkerhetskurs').length;
+            const totalTrainings = userActivities.filter(a => a.Type === 'Organisert trening').length;
 
             document.getElementById('totalPoints').textContent = totalPoints;
+            document.getElementById('totalPointsAllTime').textContent = totalPointsAllTime;
             document.getElementById('totalCourses').textContent = totalCourses;
             document.getElementById('totalTrainings').textContent = totalTrainings;
 
@@ -1044,15 +1081,4 @@
         }
 
         function logout() {
-            currentUser = null;
-            activities = [];
-            document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('loginPassword').value = '';
-        }
-
-        // Load on startup
-        window.addEventListener('DOMContentLoaded', loadInstructorsFromGitHub);
-    </script>
-</body>
-</html>
+      
