@@ -317,12 +317,12 @@
                 </div>
                 <div class="form-group">
                     <label for="activityDescription">Beskrivelse:</label>
-                    <textarea id="activityDescription" placeholder="Beskriv kort hvilke kurs du har gjennomført, eller oppgi hvem som deltok på treningen..." required></textarea>
+                    <textarea id="activityDescription" placeholder="Beskriv kort hvilke kurs du har gjennomført, eller oppgi hvem som deltok på treningen... (minimum 10 tegn)" required minlength="10"></textarea>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="activityLocation">Sted:</label>
-                        <input type="text" id="activityLocation" placeholder="F.eks. Tromsø" required>
+                        <input type="text" id="activityLocation" placeholder="F.eks. Tromsø" required minlength="3">
                     </div>
                     <div class="form-group">
                         <label for="activityParticipants">Antall deltakere:</label>
@@ -648,12 +648,46 @@
 
         async function registerActivity(event) {
             event.preventDefault();
+            
+            // Hent verdier
             const type = document.getElementById('activityType').value;
             const date = document.getElementById('activityDate').value;
-            const description = document.getElementById('activityDescription').value;
-            const location = document.getElementById('activityLocation').value;
-            const participants = parseInt(document.getElementById('activityParticipants').value);
+            const description = document.getElementById('activityDescription').value.trim();
+            const location = document.getElementById('activityLocation').value.trim();
+            const participantsValue = document.getElementById('activityParticipants').value;
+            
+            // Valider alle felt
+            const errors = [];
+            
+            if (!type || type === '-- Velg type --') {
+                errors.push('❌ Velg type aktivitet');
+            }
+            
+            if (!date) {
+                errors.push('❌ Velg dato');
+            }
+            
+            if (!description || description.length < 10) {
+                errors.push('❌ Beskrivelse må være minst 10 tegn');
+            }
+            
+            if (!location || location.length < 3) {
+                errors.push('❌ Sted må være minst 3 tegn');
+            }
+            
+            if (!participantsValue || participantsValue === '' || isNaN(participantsValue)) {
+                errors.push('❌ Fyll inn antall deltakere (tall)');
+            }
+            
+            // Vis feilmeldinger hvis noe mangler
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                return;
+            }
+            
+            const participants = parseInt(participantsValue);
             const points = parseInt(document.getElementById('activityType').selectedOptions[0].getAttribute('data-points'));
+            
             const activity = {
                 InstruktørID: currentUser.InstruktørID,
                 Instruktør: currentUser.Navn,
@@ -667,13 +701,13 @@
             };
             try {
                 await db.collection('activities').add(activity);
-                alert('Aktivitet registrert!');
+                alert('✅ Aktivitet registrert!');
                 event.target.reset();
                 document.getElementById('currentPoints').textContent = '0';
                 await loadActivities();
             } catch (error) {
                 console.error('Register error:', error);
-                alert('Feil ved registrering. Prøv igjen.');
+                alert('❌ Feil ved registrering. Prøv igjen.');
             }
         }
 
