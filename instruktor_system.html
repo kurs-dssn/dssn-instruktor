@@ -64,6 +64,12 @@
             margin-top: 10px;
         }
         .btn:hover { background: #ffd000; }
+        .btn-secondary {
+            background: var(--dssn-light-gray);
+            color: #ffffff;
+            border: 2px solid var(--dssn-yellow);
+        }
+        .btn-secondary:hover { background: var(--dssn-gray); }
         .alert { padding: 12px; border-radius: 8px; margin-bottom: 20px; }
         .alert-success {
             background: rgba(76, 175, 80, 0.2);
@@ -114,7 +120,15 @@
             border-radius: 10px;
             text-align: center;
         }
-        .stat-card h3 { color: var(--text-gray); font-size: 0.9em; margin-bottom: 10px; }
+        .stat-card h3 { 
+            color: var(--text-gray); 
+            font-size: 0.9em; 
+            margin-bottom: 10px; 
+            min-height: 2.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .value { color: var(--dssn-yellow); font-size: 2.5em; font-weight: 700; }
         .activity-form {
             background: var(--dssn-gray);
@@ -182,11 +196,48 @@
                 </form>
                 <div style="text-align: center; margin-top: 20px;">
                     <a id="forgotPasswordLink" href="#" style="color: #FFD700; text-decoration: none; font-size: 0.9em;">
-                        Glemt passord? Kontakt <span class="__cf_email__" data-cfemail="d5bea0a7a695b1a6a6bbfbbbba">[email&#160;protected]</span>
+                        Glemt passord? Kontakt oss
                     </a>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button type="button" class="btn btn-secondary" onclick="showActivation()" style="width: auto;">
+                        Ny bruker? Aktiver her
+                    </button>
                 </div>
             </div>
         </div>
+
+        <!-- Activation Modal -->
+        <div id="activationModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+            <div style="background: var(--dssn-gray); padding: 40px; border-radius: 15px; max-width: 500px; width: 90%; border: 2px solid var(--dssn-yellow);">
+                <h2 style="color: var(--dssn-yellow); margin-bottom: 20px;">Aktiver bruker</h2>
+                <div id="activationAlert" class="alert alert-info hidden"></div>
+                <form id="activationForm" onsubmit="activateUser(event)">
+                    <div class="form-group">
+                        <label for="actEmail">E-postadresse:</label>
+                        <input type="email" id="actEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="actCode">Aktiverings-kode (fra admin):</label>
+                        <input type="text" id="actCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="actPass1">Nytt passord:</label>
+                        <input type="password" id="actPass1" required minlength="8">
+                        <div id="passReq" style="font-size: 0.8em; margin-top: 5px; color: #cccccc;">
+                            Krav: Min. 8 tegn, inneholde tall og stor/liten bokstav
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="actPass2">Bekreft passord:</label>
+                        <input type="password" id="actPass2" required minlength="8">
+                    </div>
+                    <button type="submit" class="btn">Aktiver bruker</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideActivation()">Avbryt</button>
+                </form>
+            </div>
+        </div>
+
         <div id="dashboard" class="dashboard">
             <div style="background: rgba(255, 215, 0, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px; border-left: 4px solid #FFD700;">
                 <h3 onclick="toggleInstructions()" style="color: #FFD700; margin: 0; cursor: pointer; user-select: none;">
@@ -373,8 +424,13 @@
             try {
                 const passwordDoc = await db.collection('passwords').doc(email).get();
                 if (passwordDoc.exists) {
+                    const data = passwordDoc.data();
+                    if (!data.password && data.activationCode) {
+                        showAlert('loginAlert', 'Bruker ikke aktivert. Klikk "Ny bruker? Aktiver her"', 'info');
+                        return;
+                    }
                     const hashedInput = CryptoJS.SHA256(password).toString();
-                    const storedHash = passwordDoc.data().password;
+                    const storedHash = data.password;
                     if (hashedInput !== storedHash) {
                         showAlert('loginAlert', 'Feil passord', 'error');
                         return;
@@ -382,11 +438,82 @@
                     currentUser = instructor;
                     completeLogin();
                 } else {
-                    showAlert('loginAlert', 'Ingen passord funnet. Kontakt kurs@dssn.no', 'error');
+                    showAlert('loginAlert', 'Ingen tilgang. Kontakt admin for aktiverings-kode.', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
                 showAlert('loginAlert', 'Feil ved innlogging. Prøv igjen.', 'error');
+            }
+        }
+
+        function showActivation() {
+            document.getElementById('activationModal').style.display = 'flex';
+        }
+
+        function hideActivation() {
+            document.getElementById('activationModal').style.display = 'none';
+            document.getElementById('activationForm').reset();
+            document.getElementById('activationAlert').classList.add('hidden');
+        }
+
+        async function activateUser(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('actEmail').value.toLowerCase().trim();
+            const code = document.getElementById('actCode').value.trim();
+            const pass1 = document.getElementById('actPass1').value;
+            const pass2 = document.getElementById('actPass2').value;
+
+            if (pass1 !== pass2) {
+                showAlert('activationAlert', 'Passordene matcher ikke', 'error');
+                return;
+            }
+
+            const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passRegex.test(pass1)) {
+                showAlert('activationAlert', 'Passordet oppfyller ikke kravene', 'error');
+                return;
+            }
+
+            const instructor = instructors.find(i => i.Epost.toLowerCase() === email);
+            if (!instructor) {
+                showAlert('activationAlert', 'E-postadressen finnes ikke i databasen', 'error');
+                return;
+            }
+
+            try {
+                const passwordDoc = await db.collection('passwords').doc(email).get();
+                
+                if (!passwordDoc.exists) {
+                    showAlert('activationAlert', 'Ingen aktiverings-kode funnet. Kontakt admin.', 'error');
+                    return;
+                }
+
+                const data = passwordDoc.data();
+                if (data.password) {
+                    showAlert('activationAlert', 'Bruker allerede aktivert. Bruk vanlig innlogging.', 'error');
+                    return;
+                }
+
+                if (data.activationCode !== code) {
+                    showAlert('activationAlert', 'Feil aktiverings-kode', 'error');
+                    return;
+                }
+
+                const hashedPassword = CryptoJS.SHA256(pass1).toString();
+                await db.collection('passwords').doc(email).set({
+                    password: hashedPassword,
+                    activationCode: null,
+                    activated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                currentUser = instructor;
+                hideActivation();
+                completeLogin();
+
+            } catch (error) {
+                console.error('Activation error:', error);
+                showAlert('activationAlert', 'Feil ved aktivering. Prøv igjen.', 'error');
             }
         }
 
