@@ -1022,15 +1022,29 @@
                 coursesContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen kurs registrert ennå.</p>';
             } else {
                 const sortedCourses = courses.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
-                coursesContainer.innerHTML = sortedCourses.map(a => 
-                    '<div class="activity-item">' +
-                    '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
-                    '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
-                    '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
-                    '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
-                    '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
-                    '</div>'
-                ).join('');
+                const now = new Date();
+                coursesContainer.innerHTML = sortedCourses.map(a => {
+                    const createdAt = a.CreatedAt ? new Date(a.CreatedAt) : null;
+                    const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
+                    const canEdit = hoursSinceCreation <= 48;
+                    
+                    let buttonsHtml = '';
+                    if (canEdit && a.id) {
+                        buttonsHtml = '<div style="margin-top: 10px; display: flex; gap: 10px;">' +
+                            '<button onclick="editActivity(\'' + a.id + '\')" style="background: #FFA500; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">✏️ Rediger</button>' +
+                            '<button onclick="deleteActivity(\'' + a.id + '\')" style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">🗑️ Slett</button>' +
+                            '</div>';
+                    }
+                    
+                    return '<div class="activity-item">' +
+                        '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
+                        '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
+                        '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
+                        '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
+                        '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
+                        buttonsHtml +
+                        '</div>';
+                }).join('');
             }
             
             // Vis treninger
@@ -1039,15 +1053,72 @@
                 trainingsContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen treninger registrert ennå.</p>';
             } else {
                 const sortedTrainings = trainings.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
-                trainingsContainer.innerHTML = sortedTrainings.map(a => 
-                    '<div class="activity-item">' +
-                    '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
-                    '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
-                    '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
-                    '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
-                    '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
-                    '</div>'
-                ).join('');
+                const now = new Date();
+                trainingsContainer.innerHTML = sortedTrainings.map(a => {
+                    const createdAt = a.CreatedAt ? new Date(a.CreatedAt) : null;
+                    const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
+                    const canEdit = hoursSinceCreation <= 48;
+                    
+                    let buttonsHtml = '';
+                    if (canEdit && a.id) {
+                        buttonsHtml = '<div style="margin-top: 10px; display: flex; gap: 10px;">' +
+                            '<button onclick="editActivity(\'' + a.id + '\')" style="background: #FFA500; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">✏️ Rediger</button>' +
+                            '<button onclick="deleteActivity(\'' + a.id + '\')" style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">🗑️ Slett</button>' +
+                            '</div>';
+                    }
+                    
+                    return '<div class="activity-item">' +
+                        '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
+                        '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
+                        '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
+                        '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
+                        '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
+                        buttonsHtml +
+                        '</div>';
+                }).join('');
+            }
+        }
+
+        async function editActivity(activityId) {
+            const activity = activities.find(a => a.id === activityId);
+            if (!activity) {
+                alert('Fant ikke aktiviteten');
+                return;
+            }
+            
+            // Fyll inn eksisterende verdier i skjema
+            document.getElementById('activityType').value = activity.Type;
+            document.getElementById('activityDate').value = activity.Dato;
+            document.getElementById('activityDescription').value = activity.Beskrivelse;
+            document.getElementById('activityLocation').value = activity.Sted;
+            document.getElementById('activityParticipants').value = activity.AntallDeltakere;
+            updatePoints();
+            
+            // Endre knappen til "Oppdater"
+            const form = document.querySelector('.activity-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.textContent = '💾 Oppdater aktivitet';
+            submitBtn.style.background = '#FFA500';
+            
+            // Lagre ID for oppdatering
+            form.dataset.editingId = activityId;
+            
+            // Scroll til skjema
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteActivity(activityId) {
+            if (!confirm('Er du sikker på at du vil slette denne aktiviteten?')) {
+                return;
+            }
+            
+            try {
+                await db.collection('activities').doc(activityId).delete();
+                alert('✅ Aktivitet slettet!');
+                await loadActivities();
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('❌ Feil ved sletting. Prøv igjen.');
             }
         }
 
@@ -1108,11 +1179,31 @@
                 Sted: location,
                 AntallDeltakere: participants,
                 Poeng: points,
-                RegistrertTidspunkt: firebase.firestore.FieldValue.serverTimestamp()
+                RegistrertTidspunkt: firebase.firestore.FieldValue.serverTimestamp(),
+                CreatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+            
+            const form = event.target;
+            const editingId = form.dataset.editingId;
+            
             try {
-                await db.collection('activities').add(activity);
-                alert('✅ Aktivitet registrert!');
+                if (editingId) {
+                    // Oppdater eksisterende aktivitet (ikke endre CreatedAt!)
+                    delete activity.CreatedAt;
+                    await db.collection('activities').doc(editingId).update(activity);
+                    alert('✅ Aktivitet oppdatert!');
+                    
+                    // Tilbakestill knapp
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.textContent = '📝 Registrer aktivitet';
+                    submitBtn.style.background = 'var(--dssn-yellow)';
+                    delete form.dataset.editingId;
+                } else {
+                    // Ny aktivitet
+                    await db.collection('activities').add(activity);
+                    alert('✅ Aktivitet registrert!');
+                }
+                
                 event.target.reset();
                 document.getElementById('currentPoints').textContent = '0';
                 await loadActivities();
