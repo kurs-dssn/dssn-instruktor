@@ -476,20 +476,40 @@
                 <p style="color: var(--text-gray); margin-bottom: 10px;">Poeng: <span id="currentPoints" style="color: var(--dssn-yellow); font-weight: bold;">0</span></p>
                 <button type="submit" class="btn">Registrer aktivitet</button>
             </form>
-            <div class="activity-list">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--dssn-yellow); margin: 0;">Mine aktiviteter</h3>
+            <!-- Mine kurs - fane -->
+            <div class="activity-list" style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,193,7,0.1); border-radius: 8px; cursor: pointer;" onclick="toggleSection('coursesSection')">
+                    <h3 style="color: var(--dssn-yellow); margin: 0;">▶ Mine kurs</h3>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="downloadInstruktorCard()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em; background: #4CAF50;">
+                        <button onclick="event.stopPropagation(); downloadInstruktorCard()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em; background: #4CAF50;">
                             🎫 Last ned instruktørkort
                         </button>
-                        <button onclick="downloadMyActivities()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
+                        <button onclick="event.stopPropagation(); downloadMyActivities('courses')" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
                             📥 Last ned Excel
                         </button>
                     </div>
                 </div>
-                <div id="activityListContent">
-                    <p style="color: var(--text-gray);">Ingen aktiviteter registrert ennå.</p>
+                <div id="coursesSection" style="display: none; padding-top: 20px;">
+                    <div id="coursesListContent">
+                        <p style="color: var(--text-gray);">Ingen kurs registrert ennå.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mine treninger - fane -->
+            <div class="activity-list">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,193,7,0.1); border-radius: 8px; cursor: pointer;" onclick="toggleSection('trainingsSection')">
+                    <h3 style="color: var(--dssn-yellow); margin: 0;">▶ Mine treninger</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="event.stopPropagation(); downloadMyActivities('trainings')" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
+                            📥 Last ned Excel
+                        </button>
+                    </div>
+                </div>
+                <div id="trainingsSection" style="display: none; padding-top: 20px;">
+                    <div id="trainingsListContent">
+                        <p style="color: var(--text-gray);">Ingen treninger registrert ennå.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -976,22 +996,58 @@
             approvalDiv.style.fontWeight = '700';
         }
 
-        function displayActivities() {
-            const container = document.getElementById('activityListContent');
-            if (activities.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-gray);">Ingen aktiviteter registrert ennå.</p>';
-                return;
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const header = section.previousElementSibling;
+            const arrow = header.querySelector('h3');
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                arrow.textContent = arrow.textContent.replace('▶', '▼');
+            } else {
+                section.style.display = 'none';
+                arrow.textContent = arrow.textContent.replace('▼', '▶');
             }
-            const sorted = activities.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
-            container.innerHTML = sorted.map(a => 
-                '<div class="activity-item">' +
-                '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
-                '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
-                '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
-                '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
-                '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
-                '</div>'
-            ).join('');
+        }
+
+        function displayActivities() {
+            // Split aktiviteter i kurs og treninger
+            const courses = activities.filter(a => a.Type !== 'Organisert trening');
+            const trainings = activities.filter(a => a.Type === 'Organisert trening');
+            
+            // Vis kurs
+            const coursesContainer = document.getElementById('coursesListContent');
+            if (courses.length === 0) {
+                coursesContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen kurs registrert ennå.</p>';
+            } else {
+                const sortedCourses = courses.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
+                coursesContainer.innerHTML = sortedCourses.map(a => 
+                    '<div class="activity-item">' +
+                    '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
+                    '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
+                    '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
+                    '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
+                    '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
+                    '</div>'
+                ).join('');
+            }
+            
+            // Vis treninger
+            const trainingsContainer = document.getElementById('trainingsListContent');
+            if (trainings.length === 0) {
+                trainingsContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen treninger registrert ennå.</p>';
+            } else {
+                const sortedTrainings = trainings.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
+                trainingsContainer.innerHTML = sortedTrainings.map(a => 
+                    '<div class="activity-item">' +
+                    '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
+                    '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
+                    '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
+                    '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
+                    '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
+                    '</div>'
+                ).join('');
+            }
         }
 
         function updatePoints() {
@@ -1077,16 +1133,35 @@
             }
         }
 
-        function downloadMyActivities() {
-            if (activities.length === 0) {
-                alert('Du har ingen aktiviteter å laste ned ennå.');
+        function downloadMyActivities(type = 'all') {
+            let filteredActivities;
+            let title;
+            let filename;
+            
+            if (type === 'courses') {
+                filteredActivities = activities.filter(a => a.Type !== 'Organisert trening');
+                title = 'DSSN Instruktørportal - Mine kurs';
+                filename = 'Mine_kurs';
+            } else if (type === 'trainings') {
+                filteredActivities = activities.filter(a => a.Type === 'Organisert trening');
+                title = 'DSSN Instruktørportal - Mine treninger';
+                filename = 'Mine_treninger';
+            } else {
+                filteredActivities = activities;
+                title = 'DSSN Instruktørportal - Mine aktiviteter';
+                filename = 'Mine_aktiviteter';
+            }
+            
+            if (filteredActivities.length === 0) {
+                const typeText = type === 'courses' ? 'kurs' : type === 'trainings' ? 'treninger' : 'aktiviteter';
+                alert('Du har ingen ' + typeText + ' å laste ned ennå.');
                 return;
             }
 
             const wb = XLSX.utils.book_new();
             
             const data = [
-                ['DSSN Instruktørportal - Mine aktiviteter'],
+                [title],
                 [''],
                 ['Instruktør:', currentUser.Navn],
                 ['E-post:', currentUser.Epost],
@@ -1096,7 +1171,7 @@
                 ['Dato', 'Type aktivitet', 'Poeng', 'Sted', 'Antall deltakere', 'Beskrivelse']
             ];
 
-            const sorted = activities.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
+            const sorted = filteredActivities.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
             
             sorted.forEach(a => {
                 data.push([
@@ -1110,8 +1185,8 @@
             });
 
             data.push(['']);
-            data.push(['Totalt poeng i år:', activities.filter(a => new Date(a.Dato).getFullYear() === new Date().getFullYear()).reduce((sum, a) => sum + a.Poeng, 0)]);
-            data.push(['Totalt poeng (alle år):', activities.reduce((sum, a) => sum + a.Poeng, 0)]);
+            data.push(['Totalt poeng i år:', filteredActivities.filter(a => new Date(a.Dato).getFullYear() === new Date().getFullYear()).reduce((sum, a) => sum + a.Poeng, 0)]);
+            data.push(['Totalt poeng (alle år):', filteredActivities.reduce((sum, a) => sum + a.Poeng, 0)]);
 
             const ws = XLSX.utils.aoa_to_sheet(data);
             
@@ -1124,10 +1199,10 @@
                 {wch: 50}
             ];
 
-            XLSX.utils.book_append_sheet(wb, ws, 'Mine aktiviteter');
+            XLSX.utils.book_append_sheet(wb, ws, type === 'courses' ? 'Mine kurs' : type === 'trainings' ? 'Mine treninger' : 'Mine aktiviteter');
 
             const date = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, 'DSSN_Mine_Aktiviteter_' + date + '.xlsx');
+            XLSX.writeFile(wb, filename + '_' + currentUser.Navn.replace(/ /g, '_') + '_' + date + '.xlsx');
         }
 
         async function downloadInstruktorCard() {
