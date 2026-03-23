@@ -637,7 +637,7 @@
             }
             
             const email = document.getElementById('loginEmail').value.toLowerCase().trim();
-            const password = document.getElementById('loginPassword').value;
+            const password = document.getElementById('loginPassword').value.trim();
             const instructor = instructors.find(i => i.Epost.toLowerCase() === email);
             
             if (!instructor) {
@@ -690,8 +690,8 @@
             
             const email = document.getElementById('actEmail').value.toLowerCase().trim();
             const code = document.getElementById('actCode').value.trim();
-            const pass1 = document.getElementById('actPass1').value;
-            const pass2 = document.getElementById('actPass2').value;
+            const pass1 = document.getElementById('actPass1').value.trim();
+            const pass2 = document.getElementById('actPass2').value.trim();
 
             if (pass1 !== pass2) {
                 showAlert('activationAlert', 'Passordene matcher ikke', 'error');
@@ -757,10 +757,29 @@
                     firebaseUid: userCredential.user.uid
                 });
 
+                // STEG 4: Lagre GDPR-samtykke automatisk ved aktivering
+                const docId = emailToDocId(email);
+                await db.collection('gdpr_consent').doc(docId).set({
+                    accepted: true,
+                    acceptedDate: new Date().toISOString(),
+                    email: email,
+                    name: instructor.Navn
+                });
+
                 currentAuthUser = userCredential.user;
                 currentUser = instructor;
                 hideActivation();
-                completeLogin();
+                
+                // Gå direkte til dashboard (GDPR allerede lagret)
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                document.getElementById('userName').textContent = currentUser.Navn;
+                document.getElementById('userEmail').textContent = currentUser.Epost;
+                document.getElementById('userInfo').textContent = (currentUser.Klubb || '-') + ' | ' + currentUser.Region;
+                document.getElementById('userInstruktorNum').textContent = 'Instruktørnummer: ' + String(currentUser.Nummer).padStart(3, '0');
+                setDateLimits();
+                loadActivities();
+                startSessionMonitoring();
 
             } catch (error) {
                 console.error('Activation error:', error);
