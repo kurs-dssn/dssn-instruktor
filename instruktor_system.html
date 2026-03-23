@@ -240,7 +240,17 @@
         }
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
-            .user-info { flex-direction: column; gap: 15px; }
+            .user-info { 
+                flex-direction: column; 
+                gap: 15px;
+                align-items: flex-start;
+            }
+            .user-info > div:last-child {
+                width: 100%;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
             .login-screen h1 { font-size: 1.8em; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
