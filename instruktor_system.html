@@ -310,14 +310,14 @@
                     </div>
                     <div class="form-group">
                         <label for="actPass1">Nytt passord:</label>
-                        <input type="password" id="actPass1" required minlength="8">
+                        <input type="password" id="actPass1" name="new-password" autocomplete="new-password" required minlength="8">
                         <div id="passReq" style="font-size: 0.8em; margin-top: 5px; color: #cccccc;">
                             Krav: Min. 8 tegn, inneholde tall og stor/liten bokstav
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="actPass2">Bekreft passord:</label>
-                        <input type="password" id="actPass2" required minlength="8">
+                        <input type="password" id="actPass2" name="new-password" autocomplete="new-password" required minlength="8">
                     </div>
                     <button type="submit" class="btn">Aktiver bruker</button>
                     <button type="button" class="btn btn-secondary" onclick="hideActivation()">Avbryt</button>
@@ -757,29 +757,10 @@
                     firebaseUid: userCredential.user.uid
                 });
 
-                // STEG 4: Lagre GDPR-samtykke automatisk ved aktivering
-                const docId = emailToDocId(email);
-                await db.collection('gdpr_consent').doc(docId).set({
-                    accepted: true,
-                    acceptedDate: new Date().toISOString(),
-                    email: email,
-                    name: instructor.Navn
-                });
-
                 currentAuthUser = userCredential.user;
                 currentUser = instructor;
                 hideActivation();
-                
-                // Gå direkte til dashboard (GDPR allerede lagret)
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('dashboard').classList.add('active');
-                document.getElementById('userName').textContent = currentUser.Navn;
-                document.getElementById('userEmail').textContent = currentUser.Epost;
-                document.getElementById('userInfo').textContent = (currentUser.Klubb || '-') + ' | ' + currentUser.Region;
-                document.getElementById('userInstruktorNum').textContent = 'Instruktørnummer: ' + String(currentUser.Nummer).padStart(3, '0');
-                setDateLimits();
-                loadActivities();
-                startSessionMonitoring();
+                completeLogin();
 
             } catch (error) {
                 console.error('Activation error:', error);
