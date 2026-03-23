@@ -690,6 +690,7 @@
             }
 
             try {
+                // STEG 1: Sjekk aktiverings-kode FØRST (uten å endre noe)
                 const passwordDoc = await db.collection('passwords').doc(email).get();
                 
                 if (!passwordDoc.exists) {
@@ -708,19 +709,30 @@
                     return;
                 }
 
-                // Lagre hashet passord i passwords collection FØRST (mens admin-generert activationCode eksisterer)
+                // STEG 2: Opprett Firebase Auth-bruker (NÅ er vi sikre på at koden er riktig)
+                let userCredential;
+                try {
+                    userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
+                } catch (authError) {
+                    if (authError.code === 'auth/email-already-in-use') {
+                        // Bruker eksisterer i Auth - forsøk å logge inn
+                        try {
+                            userCredential = await auth.signInWithEmailAndPassword(email, pass1);
+                        } catch (loginError) {
+                            showAlert('activationAlert', 'E-postadressen er allerede registrert med et annet passord. Bruk vanlig innlogging eller kontakt admin.', 'error');
+                            return;
+                        }
+                    } else {
+                        throw authError;
+                    }
+                }
+
+                // STEG 3: Oppdater passwords collection
                 const hashedPassword = CryptoJS.SHA256(pass1).toString();
                 await db.collection('passwords').doc(email).update({
                     password: hashedPassword,
                     activationCode: firebase.firestore.FieldValue.delete(),
-                    activated: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Opprett Firebase Auth-bruker ETTER Firestore er oppdatert
-                const userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
-                
-                // Legg til firebaseUid
-                await db.collection('passwords').doc(email).update({
+                    activated: firebase.firestore.FieldValue.serverTimestamp(),
                     firebaseUid: userCredential.user.uid
                 });
 
@@ -731,11 +743,7 @@
 
             } catch (error) {
                 console.error('Activation error:', error);
-                if (error.code === 'auth/email-already-in-use') {
-                    showAlert('activationAlert', 'E-postadressen er allerede registrert. Bruk vanlig innlogging.', 'error');
-                } else {
-                    showAlert('activationAlert', 'Feil ved aktivering. Prøv igjen.', 'error');
-                }
+                showAlert('activationAlert', 'Feil ved aktivering. Prøv igjen.', 'error');
             }
         }
 
