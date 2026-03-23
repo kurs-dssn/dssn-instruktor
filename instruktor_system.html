@@ -1024,7 +1024,8 @@
                 const sortedCourses = courses.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
                 const now = new Date();
                 coursesContainer.innerHTML = sortedCourses.map(a => {
-                    const createdAt = a.CreatedAt ? new Date(a.CreatedAt) : null;
+                    // CreatedAt kan være Firestore Timestamp eller Date
+                    const createdAt = a.CreatedAt ? (a.CreatedAt.toDate ? a.CreatedAt.toDate() : new Date(a.CreatedAt)) : null;
                     const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
                     const canEdit = hoursSinceCreation <= 48;
                     
@@ -1055,7 +1056,8 @@
                 const sortedTrainings = trainings.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
                 const now = new Date();
                 trainingsContainer.innerHTML = sortedTrainings.map(a => {
-                    const createdAt = a.CreatedAt ? new Date(a.CreatedAt) : null;
+                    // CreatedAt kan være Firestore Timestamp eller Date
+                    const createdAt = a.CreatedAt ? (a.CreatedAt.toDate ? a.CreatedAt.toDate() : new Date(a.CreatedAt)) : null;
                     const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
                     const canEdit = hoursSinceCreation <= 48;
                     
