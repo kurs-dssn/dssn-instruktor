@@ -614,7 +614,7 @@
             const statusDiv = document.getElementById('statusBadge');
             statusDiv.textContent = totalPoints;
             statusDiv.style.color = '#FFD700';
-            statusDiv.style.fontSize = '2.5em';
+            statusDiv.style.fontSize = '2.2em';
             statusDiv.title = `Du har ${totalPoints} poeng i ${new Date().getFullYear()}`;
             
             // Status - OK (grønn) eller IKKE GODKJENT (rød) basert på fjor
@@ -647,7 +647,7 @@
                 approvalDiv.style.color = '#f44336';
                 approvalDiv.title = totalPoints > 0 ? messages[pointsNeeded] : messages[6];
             }
-            approvalDiv.style.fontSize = '1.2em';
+            approvalDiv.style.fontSize = '2.2em';
             approvalDiv.style.fontWeight = '700';
         }
 
