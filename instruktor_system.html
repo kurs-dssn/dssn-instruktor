@@ -111,7 +111,7 @@
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -123,14 +123,14 @@
         }
         .stat-card h3 { 
             color: var(--text-gray); 
-            font-size: 0.9em; 
+            font-size: 0.85em; 
             margin-bottom: 10px; 
             min-height: 2.5em;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .value { color: var(--dssn-yellow); font-size: 2.5em; font-weight: 700; cursor: help; }
+        .value { color: var(--dssn-yellow); font-size: 2.2em; font-weight: 700; cursor: help; }
         .activity-form {
             background: var(--dssn-gray);
             padding: 30px;
@@ -295,8 +295,12 @@
                     <div class="value" id="totalTrainings">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Status</h3>
+                    <h3>Poeng i år</h3>
                     <div class="value" id="statusBadge" style="font-size: 1.5em;">✅</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Status</h3>
+                    <div class="value" id="approvalStatus" style="font-size: 1.5em;">✅</div>
                 </div>
             </div>
             <form class="activity-form" onsubmit="registerActivity(event)">
@@ -605,9 +609,15 @@
             document.getElementById('totalCourses').textContent = totalCourses;
             document.getElementById('totalTrainings').textContent = totalTrainings;
             
+            // Poeng i år - viser bare tall
             const statusDiv = document.getElementById('statusBadge');
+            statusDiv.textContent = totalPoints;
+            statusDiv.style.color = '#FFD700';
+            statusDiv.style.fontSize = '2.5em';
+            statusDiv.title = `Du har ${totalPoints} poeng i ${new Date().getFullYear()}`;
             
-            // Status-logikk: Hadde 6+ i fjor ELLER har 6+ i år = AKTIV
+            // Status - OK (grønn) eller IKKE GODKJENT (rød) basert på fjor
+            const approvalDiv = document.getElementById('approvalStatus');
             const isActive = lastYearPoints >= 6 || totalPoints >= 6;
             const pointsNeeded = Math.max(0, 6 - totalPoints);
             
@@ -624,26 +634,20 @@
             };
             
             if (isActive) {
+                approvalDiv.textContent = 'OK';
+                approvalDiv.style.color = '#4CAF50';
                 if (totalPoints >= 6) {
-                    statusDiv.textContent = '6/6 ✅';
-                    statusDiv.style.color = '#4CAF50';
-                    statusDiv.title = messages[0];
+                    approvalDiv.title = messages[0];
                 } else {
-                    // Aktiv pga. forrige år
-                    statusDiv.textContent = totalPoints + '/6 ✅';
-                    statusDiv.style.color = '#4CAF50';
-                    statusDiv.title = `Godkjent fra ${lastYear} (${lastYearPoints}p). ${messages[pointsNeeded]}`;
+                    approvalDiv.title = `Godkjent fra ${lastYear} (${lastYearPoints}p). ${messages[pointsNeeded]}`;
                 }
-            } else if (totalPoints > 0) {
-                statusDiv.textContent = totalPoints + '/6 🟡';
-                statusDiv.style.color = '#FFA500';
-                statusDiv.title = messages[pointsNeeded];
             } else {
-                statusDiv.textContent = '0/6 🔴';
-                statusDiv.style.color = '#f44336';
-                statusDiv.title = messages[6];
+                approvalDiv.textContent = 'IKKE GODKJENT';
+                approvalDiv.style.color = '#f44336';
+                approvalDiv.title = totalPoints > 0 ? messages[pointsNeeded] : messages[6];
             }
-            statusDiv.style.fontSize = '2.5em';
+            approvalDiv.style.fontSize = '1.2em';
+            approvalDiv.style.fontWeight = '700';
         }
 
         function displayActivities() {
