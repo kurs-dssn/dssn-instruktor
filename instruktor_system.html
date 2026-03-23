@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -174,6 +175,69 @@
         }
         .activity-item h4 { color: var(--dssn-yellow); margin-bottom: 5px; }
         .activity-item p { margin: 5px 0; color: var(--text-gray); }
+        .gdpr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .gdpr-content {
+            background: var(--dssn-gray);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 700px;
+            width: 90%;
+            margin: 20px;
+            border: 3px solid var(--dssn-yellow);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .gdpr-content h2 {
+            color: var(--dssn-yellow);
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .gdpr-content h3 {
+            color: var(--dssn-yellow);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .gdpr-content p, .gdpr-content ul {
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: var(--text-gray);
+        }
+        .gdpr-content ul {
+            margin-left: 20px;
+        }
+        .gdpr-content strong {
+            color: var(--text-white);
+        }
+        .gdpr-checkbox {
+            margin: 30px 0 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .gdpr-checkbox input[type="checkbox"] {
+            margin-top: 5px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .gdpr-checkbox label {
+            cursor: pointer;
+            color: var(--text-white);
+            font-size: 1.1em;
+        }
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
             .user-info { flex-direction: column; gap: 15px; }
@@ -248,6 +312,80 @@
                     <button type="submit" class="btn">Aktiver bruker</button>
                     <button type="button" class="btn btn-secondary" onclick="hideActivation()">Avbryt</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- GDPR Consent Modal -->
+        <div id="gdprModal" class="gdpr-modal">
+            <div class="gdpr-content">
+                <h2>Personvern og samtykke</h2>
+                
+                <h3>Behandling av personopplysninger</h3>
+                <p>DSSN Instruktørportal behandler følgende personopplysninger om deg:</p>
+                
+                <p><strong>Grunnleggende informasjon:</strong></p>
+                <ul>
+                    <li>Navn</li>
+                    <li>E-postadresse</li>
+                    <li>Klubbtilknytning</li>
+                    <li>Region</li>
+                    <li>Instruktørnummer</li>
+                </ul>
+                
+                <p><strong>Aktivitetsdata:</strong></p>
+                <ul>
+                    <li>Registrerte kurs og treninger</li>
+                    <li>Datoer og steder for aktiviteter</li>
+                    <li>Poengberegninger</li>
+                    <li>Instruktørstatus</li>
+                </ul>
+                
+                <h3>Formål og behandlingsgrunnlag</h3>
+                <p>Personopplysningene behandles for å:</p>
+                <ul>
+                    <li>Administrere og dokumentere instruktøraktivitet i DSSN</li>
+                    <li>Opprettholde oversikt over instruktørers kvalifikasjoner</li>
+                    <li>Sikre etterlevelse av DSSNs krav til instruktørstatus</li>
+                    <li>Generere instruktørbevis og aktivitetsrapporter</li>
+                </ul>
+                <p>Behandlingsgrunnlaget er <strong>samtykke</strong> (GDPR art. 6(1)(a)) og <strong>oppfyllelse av avtale</strong> (GDPR art. 6(1)(b)) knyttet til ditt instruktørverv i DSSN.</p>
+                
+                <h3>Lagring og sikkerhet</h3>
+                <ul>
+                    <li>Data lagres i Firebase (Google Cloud Platform) med kryptering</li>
+                    <li>Kun du har tilgang til dine egne data via innlogging</li>
+                    <li>DSSN-administratorer har tilgang for administrasjonsformål</li>
+                    <li>Data slettes ikke automatisk, men du kan når som helst be om sletting</li>
+                </ul>
+                
+                <h3>Dine rettigheter</h3>
+                <p>Du har rett til å:</p>
+                <ul>
+                    <li><strong>Få innsyn</strong> i hvilke opplysninger som er registrert om deg</li>
+                    <li><strong>Få rettet</strong> uriktige eller ufullstendige opplysninger</li>
+                    <li><strong>Få slettet</strong> dine personopplysninger</li>
+                    <li><strong>Trekke tilbake</strong> samtykke (dette vil medføre at du ikke lenger kan bruke portalen)</li>
+                    <li><strong>Klage</strong> til Datatilsynet dersom du mener behandlingen er ulovlig</li>
+                </ul>
+                <p>For å utøve dine rettigheter, kontakt: <strong>kurs@dssn.no</strong></p>
+                
+                <h3>Samtykke</h3>
+                <p>Ved å akseptere nedenfor samtykker du til behandling av dine personopplysninger som beskrevet over.</p>
+                
+                <div class="gdpr-checkbox">
+                    <input type="checkbox" id="gdprAcceptCheckbox">
+                    <label for="gdprAcceptCheckbox">
+                        Jeg har lest og forstått personvernerklæringen, og jeg samtykker til behandling av mine personopplysninger som beskrevet over.
+                    </label>
+                </div>
+                
+                <button id="gdprAcceptBtn" class="btn" onclick="acceptGDPR()" disabled style="opacity: 0.5;">
+                    Aksepter og fortsett
+                </button>
+                
+                <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-gray); font-style: italic;">
+                    Du må akseptere for å bruke portalen. Uten samtykke kan du ikke registrere aktiviteter.
+                </p>
             </div>
         </div>
 
@@ -368,9 +506,31 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
         let instructors = [];
         let currentUser = null;
+        let currentAuthUser = null; // Firebase Auth user
         let activities = [];
+
+        // Rate limiting for innlogging
+        let loginAttempts = 0;
+        let loginBlockedUntil = null;
+
+        // Session timeout (30 minutter inaktivitet)
+        let sessionTimeout = null;
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutter
+
+        // HTML escape for XSS-beskyttelse
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
 
         function showAlert(elementId, message, type) {
             const alert = document.getElementById(elementId);
@@ -435,39 +595,62 @@
 
         async function handleLogin(event) {
             event.preventDefault();
+            
+            // Sjekk rate limiting
+            if (loginBlockedUntil && new Date() < loginBlockedUntil) {
+                const remainingSeconds = Math.ceil((loginBlockedUntil - new Date()) / 1000);
+                showAlert('loginAlert', `For mange forsøk. Prøv igjen om ${remainingSeconds} sekunder.`, 'error');
+                return;
+            }
+            
             if (!instructors || instructors.length === 0) {
                 showAlert('loginAlert', 'Vennligst vent mens data laster...', 'info');
                 return;
             }
+            
             const email = document.getElementById('loginEmail').value.toLowerCase().trim();
             const password = document.getElementById('loginPassword').value;
             const instructor = instructors.find(i => i.Epost.toLowerCase() === email);
+            
             if (!instructor) {
-                showAlert('loginAlert', 'E-postadressen finnes ikke i databasen', 'error');
+                loginAttempts++;
+                if (loginAttempts >= 5) {
+                    loginBlockedUntil = new Date(new Date().getTime() + 5 * 60 * 1000);
+                    showAlert('loginAlert', 'For mange mislykkede forsøk. Prøv igjen om 5 minutter.', 'error');
+                } else {
+                    showAlert('loginAlert', 'Feil e-postadresse eller passord', 'error');
+                }
                 return;
             }
+            
             try {
+                // Først sjekk om bruker er aktivert
                 const passwordDoc = await db.collection('passwords').doc(email).get();
-                if (passwordDoc.exists) {
-                    const data = passwordDoc.data();
-                    if (!data.password && data.activationCode) {
-                        showAlert('loginAlert', 'Bruker ikke aktivert. Klikk "Ny bruker? Aktiver her"', 'info');
-                        return;
-                    }
-                    const hashedInput = CryptoJS.SHA256(password).toString();
-                    const storedHash = data.password;
-                    if (hashedInput !== storedHash) {
-                        showAlert('loginAlert', 'Feil passord', 'error');
-                        return;
-                    }
-                    currentUser = instructor;
-                    completeLogin();
-                } else {
-                    showAlert('loginAlert', 'Ingen tilgang. Kontakt admin for aktiverings-kode.', 'error');
+                if (!passwordDoc.exists || !passwordDoc.data().password) {
+                    showAlert('loginAlert', 'Bruker ikke aktivert. Klikk "Ny bruker? Aktiver her"', 'info');
+                    return;
                 }
+                
+                // Prøv å logge inn med Firebase Auth
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                
+                // Vellykket - reset rate limiting
+                loginAttempts = 0;
+                loginBlockedUntil = null;
+                currentAuthUser = userCredential.user;
+                currentUser = instructor;
+                completeLogin();
+                
             } catch (error) {
                 console.error('Login error:', error);
-                showAlert('loginAlert', 'Feil ved innlogging. Prøv igjen.', 'error');
+                loginAttempts++;
+                
+                if (loginAttempts >= 5) {
+                    loginBlockedUntil = new Date(new Date().getTime() + 5 * 60 * 1000);
+                    showAlert('loginAlert', 'For mange mislykkede forsøk. Prøv igjen om 5 minutter.', 'error');
+                } else {
+                    showAlert('loginAlert', 'Feil e-postadresse eller passord', 'error');
+                }
             }
         }
 
@@ -525,24 +708,42 @@
                     return;
                 }
 
+                // Opprett Firebase Auth-bruker
+                const userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
+                
+                // Lagre hashet passord i passwords collection (for backup)
                 const hashedPassword = CryptoJS.SHA256(pass1).toString();
                 await db.collection('passwords').doc(email).set({
                     password: hashedPassword,
                     activationCode: null,
-                    activated: firebase.firestore.FieldValue.serverTimestamp()
+                    activated: firebase.firestore.FieldValue.serverTimestamp(),
+                    firebaseUid: userCredential.user.uid
                 });
 
+                currentAuthUser = userCredential.user;
                 currentUser = instructor;
                 hideActivation();
                 completeLogin();
 
             } catch (error) {
                 console.error('Activation error:', error);
-                showAlert('activationAlert', 'Feil ved aktivering. Prøv igjen.', 'error');
+                if (error.code === 'auth/email-already-in-use') {
+                    showAlert('activationAlert', 'E-postadressen er allerede registrert. Bruk vanlig innlogging.', 'error');
+                } else {
+                    showAlert('activationAlert', 'Feil ved aktivering. Prøv igjen.', 'error');
+                }
             }
         }
 
-        function completeLogin() {
+        async function completeLogin() {
+            // Sjekk GDPR-samtykke
+            const gdprAccepted = await checkGDPRConsent(currentUser.Epost);
+            if (!gdprAccepted) {
+                showGDPRModal();
+                return;
+            }
+            
+            // Normal innlogging
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
             document.getElementById('userName').textContent = currentUser.Navn;
@@ -551,6 +752,7 @@
             document.getElementById('userInstruktorNum').textContent = 'Instruktørnummer: ' + String(currentUser.Nummer).padStart(3, '0');
             setDateLimits();
             loadActivities();
+            startSessionMonitoring();
         }
 
         function setDateLimits() {
@@ -570,12 +772,123 @@
             dateInput.value = today.toISOString().split('T')[0];
         }
 
-        function logout() {
+        async function logout() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
             currentUser = null;
+            currentAuthUser = null;
             activities = [];
+            clearTimeout(sessionTimeout);
             document.getElementById('dashboard').classList.remove('active');
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('loginForm').reset();
+        }
+
+        function resetSessionTimeout() {
+            clearTimeout(sessionTimeout);
+            if (currentUser) {
+                sessionTimeout = setTimeout(() => {
+                    alert('Du har blitt logget ut på grunn av inaktivitet.');
+                    logout();
+                }, SESSION_TIMEOUT_MS);
+            }
+        }
+
+        function startSessionMonitoring() {
+            // Reset timeout ved aktivitet
+            ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetSessionTimeout, true);
+            });
+            resetSessionTimeout();
+        }
+
+        // GDPR-funksjoner
+        
+        // Konverterer e-post til gyldig Firebase document ID
+        function emailToDocId(email) {
+            // Firebase document IDs kan ikke inneholde: / \ . # $ [ ]
+            // Vi erstatter disse med underscore
+            return email.toLowerCase().trim()
+                .replace(/\//g, '_')
+                .replace(/\\/g, '_')
+                .replace(/\./g, '_')
+                .replace(/#/g, '_')
+                .replace(/\$/g, '_')
+                .replace(/\[/g, '_')
+                .replace(/\]/g, '_');
+        }
+        
+        async function checkGDPRConsent(email) {
+            try {
+                const docId = emailToDocId(email);
+                const gdprDoc = await db.collection('gdpr_consent').doc(docId).get();
+                if (gdprDoc.exists) {
+                    return gdprDoc.data().accepted === true;
+                }
+                return false;
+            } catch (error) {
+                console.error('GDPR check error:', error);
+                return false;
+            }
+        }
+
+        function showGDPRModal() {
+            document.getElementById('gdprModal').style.display = 'flex';
+            document.getElementById('loginScreen').style.display = 'none';
+        }
+
+        // GDPR checkbox handler - kun én gang
+        let gdprCheckboxInitialized = false;
+        function initGDPRCheckbox() {
+            if (gdprCheckboxInitialized) return;
+            
+            document.getElementById('gdprAcceptCheckbox').addEventListener('change', function() {
+                const btn = document.getElementById('gdprAcceptBtn');
+                if (this.checked) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                }
+            });
+            gdprCheckboxInitialized = true;
+        }
+
+        async function acceptGDPR() {
+            const checkbox = document.getElementById('gdprAcceptCheckbox');
+            if (!checkbox.checked) {
+                alert('Du må huke av for å akseptere personvernerklæringen.');
+                return;
+            }
+
+            try {
+                // Lagre samtykke i Firestore med sikker document ID
+                const docId = emailToDocId(currentUser.Epost);
+                await db.collection('gdpr_consent').doc(docId).set({
+                    accepted: true,
+                    acceptedDate: new Date().toISOString(),
+                    email: currentUser.Epost,
+                    name: currentUser.Navn
+                });
+
+                // Skjul modal og fortsett til dashboard
+                document.getElementById('gdprModal').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                document.getElementById('userName').textContent = currentUser.Navn;
+                document.getElementById('userEmail').textContent = currentUser.Epost;
+                document.getElementById('userInfo').textContent = (currentUser.Klubb || '-') + ' | ' + currentUser.Region;
+                document.getElementById('userInstruktorNum').textContent = 'Instruktørnummer: ' + String(currentUser.Nummer).padStart(3, '0');
+                setDateLimits();
+                loadActivities();
+                startSessionMonitoring();
+            } catch (error) {
+                console.error('GDPR save error:', error);
+                alert('Feil ved lagring av samtykke. Prøv igjen.');
+            }
         }
 
         async function loadActivities() {
@@ -660,11 +973,11 @@
             const sorted = activities.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
             container.innerHTML = sorted.map(a => 
                 '<div class="activity-item">' +
-                '<h4>' + a.Type + ' - ' + a.Poeng + 'p</h4>' +
+                '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
                 '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
-                '<p><strong>Sted:</strong> ' + a.Sted + '</p>' +
-                '<p><strong>Deltakere:</strong> ' + a.AntallDeltakere + '</p>' +
-                '<p><strong>Beskrivelse:</strong> ' + a.Beskrivelse + '</p>' +
+                '<p><strong>Sted:</strong> ' + escapeHtml(a.Sted) + '</p>' +
+                '<p><strong>Deltakere:</strong> ' + parseInt(a.AntallDeltakere) + '</p>' +
+                '<p><strong>Beskrivelse:</strong> ' + escapeHtml(a.Beskrivelse) + '</p>' +
                 '</div>'
             ).join('');
         }
@@ -898,17 +1211,17 @@
                 // - Hadde <6 poeng i fjor ELLER ny instruktør → Må få 6+ i år for AKTIV
                 let status, statusColor;
                 if (lastYearPoints >= 6 || yearPoints >= 6) {
-                    status = '✓ AKTIV';
+                    status = 'AKTIV';
                     statusColor = [76, 175, 80]; // Grønn
                 } else {
-                    status = '✗ INAKTIV';
+                    status = 'INAKTIV';
                     statusColor = [244, 67, 54]; // Rød
                 }
 
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFontSize(9);
                 pdf.setFont('helvetica', 'normal');
-                pdf.text('Status ' + currentYear + ':', 20, 45);
+                pdf.text('Status:', 20, 45);
                 pdf.setTextColor(...statusColor);
                 pdf.setFont('helvetica', 'bold');
                 pdf.text(status, 20, 49);
@@ -940,6 +1253,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadInstructors();
+            initGDPRCheckbox();
             const today = new Date();
             const twoMonthsAgo = new Date();
             twoMonthsAgo.setMonth(today.getMonth() - 2);
