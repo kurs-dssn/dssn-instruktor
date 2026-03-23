@@ -708,18 +708,19 @@
                     return;
                 }
 
-                // Opprett Firebase Auth-bruker
+                // Lagre hashet passord i passwords collection FØRST (mens admin-generert activationCode eksisterer)
+                const hashedPassword = CryptoJS.SHA256(pass1).toString();
+                await db.collection('passwords').doc(email).update({
+                    password: hashedPassword,
+                    activationCode: firebase.firestore.FieldValue.delete(),
+                    activated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Opprett Firebase Auth-bruker ETTER Firestore er oppdatert
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
                 
-                // Vent på at ID token er tilgjengelig
-                await userCredential.user.getIdToken(true);
-                
-                // Lagre hashet passord i passwords collection (for backup)
-                const hashedPassword = CryptoJS.SHA256(pass1).toString();
-                await db.collection('passwords').doc(email).set({
-                    password: hashedPassword,
-                    activationCode: null,
-                    activated: firebase.firestore.FieldValue.serverTimestamp(),
+                // Legg til firebaseUid
+                await db.collection('passwords').doc(email).update({
                     firebaseUid: userCredential.user.uid
                 });
 
