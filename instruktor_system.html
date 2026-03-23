@@ -1342,12 +1342,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadInstructors();
             initGDPRCheckbox();
-            const today = new Date();
-            const twoMonthsAgo = new Date();
-            twoMonthsAgo.setMonth(today.getMonth() - 2);
-            const dateInput = document.getElementById('activityDate');
-            dateInput.min = twoMonthsAgo.toISOString().split('T')[0];
-            dateInput.max = today.toISOString().split('T')[0];
+            setDateLimits();
             document.getElementById('forgotPasswordLink').onclick = function(e) {
                 e.preventDefault();
                 window.location.href = 'mailto:' + 'kurs' + '@' + 'dssn.no' + '?subject=Glemt%20passord%20-%20DSSN%20Instruktørportal';
