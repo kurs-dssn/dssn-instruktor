@@ -711,6 +711,9 @@
                 // Opprett Firebase Auth-bruker
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
                 
+                // Vent på at ID token er tilgjengelig
+                await userCredential.user.getIdToken(true);
+                
                 // Lagre hashet passord i passwords collection (for backup)
                 const hashedPassword = CryptoJS.SHA256(pass1).toString();
                 await db.collection('passwords').doc(email).set({
