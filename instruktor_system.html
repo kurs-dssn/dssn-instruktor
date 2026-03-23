@@ -652,13 +652,6 @@
             }
             
             try {
-                // Først sjekk om bruker er aktivert
-                const passwordDoc = await db.collection('passwords').doc(email).get();
-                if (!passwordDoc.exists || !passwordDoc.data().password) {
-                    showAlert('loginAlert', 'Bruker ikke aktivert. Klikk "Ny bruker? Aktiver her"', 'info');
-                    return;
-                }
-                
                 // Prøv å logge inn med Firebase Auth
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 
