@@ -414,7 +414,10 @@
                     <p id="userInfo">Klubb | Region</p>
                     <p id="userInstruktorNum" style="color: #cccccc; font-size: 0.9em;">-</p>
                 </div>
-                <button class="logout-btn" onclick="logout()">Logg ut</button>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="downloadInstruktorCard()" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1em;">🎫 Instr</button>
+                    <button class="logout-btn" onclick="logout()">Logg ut</button>
+                </div>
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -480,14 +483,9 @@
             <div class="activity-list" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,193,7,0.1); border-radius: 8px; cursor: pointer;" onclick="toggleSection('coursesSection')">
                     <h3 style="color: var(--dssn-yellow); margin: 0;">▶ Mine kurs</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="event.stopPropagation(); downloadInstruktorCard()" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em; background: #4CAF50;">
-                            🎫 Last ned instruktørkort
-                        </button>
-                        <button onclick="event.stopPropagation(); downloadMyActivities('courses')" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
-                            📥 Last ned Excel
-                        </button>
-                    </div>
+                    <button onclick="event.stopPropagation(); downloadMyActivities('courses')" class="btn" style="width: auto; padding: 10px 20px; font-size: 0.9em;">
+                        📥 Last ned Excel
+                    </button>
                 </div>
                 <div id="coursesSection" style="display: none; padding-top: 20px;">
                     <div id="coursesListContent">
