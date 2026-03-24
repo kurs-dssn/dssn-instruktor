@@ -112,7 +112,7 @@
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -447,10 +447,6 @@
                     <div class="value" id="totalTrainings">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Poeng i år</h3>
-                    <div class="value" id="statusBadge" style="font-size: 1.5em;">✅</div>
-                </div>
-                <div class="stat-card">
                     <h3>Instruktørstatus</h3>
                     <div class="value" id="approvalStatus" style="font-size: 1.5em;">✅</div>
                 </div>
@@ -537,18 +533,15 @@
         const auth = firebase.auth();
         let instructors = [];
         let currentUser = null;
-        let currentAuthUser = null; // Firebase Auth user
+        let currentAuthUser = null;
         let activities = [];
 
-        // Rate limiting for innlogging
         let loginAttempts = 0;
         let loginBlockedUntil = null;
 
-        // Session timeout (30 minutter inaktivitet)
         let sessionTimeout = null;
-        const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutter
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
-        // HTML escape for XSS-beskyttelse
         function escapeHtml(text) {
             const map = {
                 '&': '&amp;',
@@ -624,7 +617,6 @@
         async function handleLogin(event) {
             event.preventDefault();
             
-            // Sjekk rate limiting
             if (loginBlockedUntil && new Date() < loginBlockedUntil) {
                 const remainingSeconds = Math.ceil((loginBlockedUntil - new Date()) / 1000);
                 showAlert('loginAlert', `For mange forsøk. Prøv igjen om ${remainingSeconds} sekunder.`, 'error');
@@ -652,10 +644,8 @@
             }
             
             try {
-                // Prøv å logge inn med Firebase Auth
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 
-                // Vellykket - reset rate limiting
                 loginAttempts = 0;
                 loginBlockedUntil = null;
                 currentAuthUser = userCredential.user;
@@ -711,7 +701,6 @@
             }
 
             try {
-                // STEG 1: Sjekk aktiverings-kode FØRST (uten å endre noe)
                 const passwordDoc = await db.collection('passwords').doc(email).get();
                 
                 if (!passwordDoc.exists) {
@@ -730,13 +719,11 @@
                     return;
                 }
 
-                // STEG 2: Opprett Firebase Auth-bruker (NÅ er vi sikre på at koden er riktig)
                 let userCredential;
                 try {
                     userCredential = await auth.createUserWithEmailAndPassword(email, pass1);
                 } catch (authError) {
                     if (authError.code === 'auth/email-already-in-use') {
-                        // Bruker eksisterer i Auth - forsøk å logge inn
                         try {
                             userCredential = await auth.signInWithEmailAndPassword(email, pass1);
                         } catch (loginError) {
@@ -748,7 +735,6 @@
                     }
                 }
 
-                // STEG 3: Oppdater passwords collection
                 const hashedPassword = CryptoJS.SHA256(pass1).toString();
                 await db.collection('passwords').doc(email).update({
                     password: hashedPassword,
@@ -761,7 +747,6 @@
                 currentUser = instructor;
                 hideActivation();
                 
-                // Vis GDPR-modal ved aktivering (alltid første gang)
                 showGDPRModal();
 
             } catch (error) {
@@ -771,14 +756,12 @@
         }
 
         async function completeLogin() {
-            // Sjekk GDPR-samtykke
             const gdprAccepted = await checkGDPRConsent(currentUser.Epost);
             if (!gdprAccepted) {
                 showGDPRModal();
                 return;
             }
             
-            // Normal innlogging
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
             document.getElementById('userName').textContent = currentUser.Navn;
@@ -794,11 +777,9 @@
             const dateInput = document.getElementById('activityDate');
             const today = new Date();
             
-            // Max: 7 dager fram
             const maxDate = new Date(today);
             maxDate.setDate(today.getDate() + 7);
             
-            // Min: 2 måneder tilbake
             const minDate = new Date(today);
             minDate.setMonth(today.getMonth() - 2);
             
@@ -833,19 +814,13 @@
         }
 
         function startSessionMonitoring() {
-            // Reset timeout ved aktivitet
             ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
                 document.addEventListener(event, resetSessionTimeout, true);
             });
             resetSessionTimeout();
         }
 
-        // GDPR-funksjoner
-        
-        // Konverterer e-post til gyldig Firebase document ID
         function emailToDocId(email) {
-            // Firebase document IDs kan ikke inneholde: / \ . # $ [ ]
-            // Vi erstatter disse med underscore
             return email.toLowerCase().trim()
                 .replace(/\//g, '_')
                 .replace(/\\/g, '_')
@@ -875,7 +850,6 @@
             document.getElementById('loginScreen').style.display = 'none';
         }
 
-        // GDPR checkbox handler - kun én gang
         let gdprCheckboxInitialized = false;
         function initGDPRCheckbox() {
             if (gdprCheckboxInitialized) return;
@@ -901,7 +875,6 @@
             }
 
             try {
-                // Lagre samtykke i Firestore med sikker document ID
                 const docId = emailToDocId(currentUser.Epost);
                 await db.collection('gdpr_consent').doc(docId).set({
                     accepted: true,
@@ -910,7 +883,6 @@
                     name: currentUser.Navn
                 });
 
-                // Skjul modal og fortsett til dashboard
                 document.getElementById('gdprModal').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
                 document.getElementById('userName').textContent = currentUser.Navn;
@@ -958,14 +930,6 @@
             document.getElementById('totalCourses').textContent = totalCourses;
             document.getElementById('totalTrainings').textContent = totalTrainings;
             
-            // Poeng i år - viser bare tall
-            const statusDiv = document.getElementById('statusBadge');
-            statusDiv.textContent = totalPoints;
-            statusDiv.style.color = '#FFD700';
-            statusDiv.style.fontSize = '2.2em';
-            statusDiv.title = `Du har ${totalPoints} poeng i ${new Date().getFullYear()}`;
-            
-            // Status - OK (grønn) hvis 6+ poeng i fjor ELLER i år
             const approvalDiv = document.getElementById('approvalStatus');
             const isActive = lastYearPoints >= 6 || totalPoints >= 6;
             const pointsNeeded = Math.max(0, 6 - totalPoints);
@@ -1012,11 +976,9 @@
         }
 
         function displayActivities() {
-            // Split aktiviteter i kurs og treninger
             const courses = activities.filter(a => a.Type !== 'Organisert trening');
             const trainings = activities.filter(a => a.Type === 'Organisert trening');
             
-            // Vis kurs
             const coursesContainer = document.getElementById('coursesListContent');
             if (courses.length === 0) {
                 coursesContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen kurs registrert ennå.</p>';
@@ -1024,13 +986,9 @@
                 const sortedCourses = courses.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
                 const now = new Date();
                 coursesContainer.innerHTML = sortedCourses.map(a => {
-                    // CreatedAt kan være Firestore Timestamp eller Date
                     const createdAt = a.CreatedAt ? (a.CreatedAt.toDate ? a.CreatedAt.toDate() : new Date(a.CreatedAt)) : null;
                     const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
                     const canEdit = hoursSinceCreation <= 48;
-                    
-                    // Debug
-                    console.log('Kurs:', a.Type, 'ID:', a.id, 'CreatedAt:', createdAt, 'Timer siden:', hoursSinceCreation, 'Kan redigere:', canEdit);
                     
                     let buttonsHtml = '';
                     if (canEdit && a.id) {
@@ -1051,7 +1009,6 @@
                 }).join('');
             }
             
-            // Vis treninger
             const trainingsContainer = document.getElementById('trainingsListContent');
             if (trainings.length === 0) {
                 trainingsContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen treninger registrert ennå.</p>';
@@ -1059,13 +1016,9 @@
                 const sortedTrainings = trainings.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
                 const now = new Date();
                 trainingsContainer.innerHTML = sortedTrainings.map(a => {
-                    // CreatedAt kan være Firestore Timestamp eller Date
                     const createdAt = a.CreatedAt ? (a.CreatedAt.toDate ? a.CreatedAt.toDate() : new Date(a.CreatedAt)) : null;
                     const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
                     const canEdit = hoursSinceCreation <= 48;
-                    
-                    // Debug
-                    console.log('Trening:', a.Type, 'ID:', a.id, 'CreatedAt:', createdAt, 'Timer siden:', hoursSinceCreation, 'Kan redigere:', canEdit);
                     
                     let buttonsHtml = '';
                     if (canEdit && a.id) {
@@ -1094,7 +1047,6 @@
                 return;
             }
             
-            // Fyll inn eksisterende verdier i skjema
             document.getElementById('activityType').value = activity.Type;
             document.getElementById('activityDate').value = activity.Dato;
             document.getElementById('activityDescription').value = activity.Beskrivelse;
@@ -1102,16 +1054,13 @@
             document.getElementById('activityParticipants').value = activity.AntallDeltakere;
             updatePoints();
             
-            // Endre knappen til "Oppdater"
             const form = document.querySelector('.activity-form');
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.textContent = '💾 Oppdater aktivitet';
             submitBtn.style.background = '#FFA500';
             
-            // Lagre ID for oppdatering
             form.dataset.editingId = activityId;
             
-            // Scroll til skjema
             form.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -1139,14 +1088,12 @@
         async function registerActivity(event) {
             event.preventDefault();
             
-            // Hent verdier
             const type = document.getElementById('activityType').value;
             const date = document.getElementById('activityDate').value;
             const description = document.getElementById('activityDescription').value.trim();
             const location = document.getElementById('activityLocation').value.trim();
             const participantsValue = document.getElementById('activityParticipants').value;
             
-            // Valider alle felt
             const errors = [];
             
             if (!type || type === '-- Velg type --') {
@@ -1169,7 +1116,6 @@
                 errors.push('❌ Fyll inn antall deltakere (tall)');
             }
             
-            // Vis feilmeldinger hvis noe mangler
             if (errors.length > 0) {
                 alert(errors.join('\n'));
                 return;
@@ -1196,18 +1142,15 @@
             
             try {
                 if (editingId) {
-                    // Oppdater eksisterende aktivitet (ikke endre CreatedAt!)
                     delete activity.CreatedAt;
                     await db.collection('activities').doc(editingId).update(activity);
                     alert('✅ Aktivitet oppdatert!');
                     
-                    // Tilbakestill knapp
                     const submitBtn = form.querySelector('button[type="submit"]');
                     submitBtn.textContent = '📝 Registrer aktivitet';
                     submitBtn.style.background = 'var(--dssn-yellow)';
                     delete form.dataset.editingId;
                 } else {
-                    // Ny aktivitet
                     await db.collection('activities').add(activity);
                     alert('✅ Aktivitet registrert!');
                 }
@@ -1314,7 +1257,6 @@
 
                 console.log('Starter generering av instruktørkort...');
                 
-                // Kredittkort størrelse: 85.6mm x 53.98mm (3.37" x 2.13")
                 const { jsPDF } = window.jspdf;
                 if (!jsPDF) {
                     alert('Feil: PDF-bibliotek ikke lastet. Refresh siden.');
@@ -1327,15 +1269,12 @@
                     format: [85.6, 53.98]
                 });
 
-                // Bakgrunn
-                pdf.setFillColor(42, 42, 42); // DSSN gray
+                pdf.setFillColor(42, 42, 42);
                 pdf.rect(0, 0, 85.6, 53.98, 'F');
 
-                // Gul header stripe
-                pdf.setFillColor(255, 215, 0); // DSSN yellow
+                pdf.setFillColor(255, 215, 0);
                 pdf.rect(0, 0, 85.6, 8, 'F');
 
-                // Last DSSN logo
                 const logoUrl = 'https://raw.githubusercontent.com/kurs-dssn/dssn-instruktor/main/DSSN%20logo.png';
                 try {
                     const response = await fetch(logoUrl);
@@ -1360,13 +1299,11 @@
 
                 function finishCard() {
                     try {
-                        // DSSN tekstlogo i header
                         pdf.setFontSize(10);
                         pdf.setTextColor(26, 26, 26);
                         pdf.setFont('helvetica', 'bold');
                         pdf.text('DSSN INSTRUKTØRKORT', 42.8, 5, { align: 'center' });
 
-                        // Instruktør info
                         pdf.setFontSize(14);
                         pdf.setTextColor(255, 255, 255);
                         pdf.setFont('helvetica', 'bold');
@@ -1377,7 +1314,6 @@
                 pdf.text(currentUser.Klubb || 'Ingen klubb', 20, 20);
                 pdf.text(currentUser.Region, 20, 24);
 
-                // Instruktørnummer
                 pdf.setFontSize(11);
                 pdf.setFont('helvetica', 'bold');
                 pdf.text('Instruktørnummer:', 20, 32);
@@ -1385,7 +1321,6 @@
                 pdf.setFontSize(16);
                 pdf.text(String(currentUser.Nummer).padStart(3, '0'), 20, 38);
 
-                // Status og poeng
                 const currentYear = new Date().getFullYear();
                 const lastYear = currentYear - 1;
                 
@@ -1393,16 +1328,13 @@
                 const lastYearPoints = activities.filter(a => new Date(a.Dato).getFullYear() === lastYear).reduce((sum, a) => sum + a.Poeng, 0);
                 const totalPoints = activities.reduce((sum, a) => sum + a.Poeng, 0);
                 
-                // Status-logikk:
-                // - Hadde 6+ poeng i fjor → AKTIV (gyldig til årsskiftet)
-                // - Hadde <6 poeng i fjor ELLER ny instruktør → Må få 6+ i år for AKTIV
                 let status, statusColor;
                 if (lastYearPoints >= 6 || yearPoints >= 6) {
                     status = 'AKTIV';
-                    statusColor = [76, 175, 80]; // Grønn
+                    statusColor = [76, 175, 80];
                 } else {
                     status = 'INAKTIV';
-                    statusColor = [244, 67, 54]; // Rød
+                    statusColor = [244, 67, 54];
                 }
 
                 pdf.setTextColor(255, 255, 255);
@@ -1418,12 +1350,10 @@
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(`${yearPoints}/6 poeng (Totalt: ${totalPoints})`, 45, 49);
 
-                // Footer
                 pdf.setFontSize(6);
                 pdf.setTextColor(150, 150, 150);
                 pdf.text('Dynamisk Sportsskyting Norge', 42.8, 52, { align: 'center' });
 
-                // Last ned
                 console.log('Lagrer PDF...');
                 pdf.save(`DSSN_Instruktorkort_${currentUser.Nummer}.pdf`);
                 console.log('PDF lagret!');
