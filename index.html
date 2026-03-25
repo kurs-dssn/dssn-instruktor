@@ -650,6 +650,8 @@
                 loginBlockedUntil = null;
                 currentAuthUser = userCredential.user;
                 currentUser = instructor;
+                console.log('handleLogin: Set currentUser to:', currentUser);
+                console.log('handleLogin: Set currentAuthUser to:', currentAuthUser);
                 completeLogin();
                 
             } catch (error) {
@@ -745,6 +747,8 @@
 
                 currentAuthUser = userCredential.user;
                 currentUser = instructor;
+                console.log('activateUser: Set currentUser to:', currentUser);
+                console.log('activateUser: Set currentAuthUser to:', currentAuthUser);
                 hideActivation();
                 
                 showGDPRModal();
@@ -756,7 +760,12 @@
         }
 
         async function completeLogin() {
+            console.log('completeLogin called, currentUser:', currentUser);
+            console.log('completeLogin called, currentAuthUser:', currentAuthUser);
+            
             const gdprAccepted = await checkGDPRConsent(currentUser.Epost);
+            console.log('GDPR already accepted:', gdprAccepted);
+            
             if (!gdprAccepted) {
                 showGDPRModal();
                 return;
@@ -874,21 +883,47 @@
                 return;
             }
 
-            if (!currentUser || !currentUser.Epost) {
-                console.error('currentUser not set:', currentUser);
-                alert('Feil: Brukerdata ikke lastet. Prøv å logge inn på nytt.');
-                logout();
+            console.log('acceptGDPR called, currentUser:', currentUser);
+            
+            if (!currentUser) {
+                console.error('currentUser is null or undefined');
+                alert('FEIL: Brukerdata ikke lastet (currentUser er null).\n\nDette kan skyldes:\n1. Du har ikke logget inn riktig\n2. Nettleseren blokkerer data\n\nPrøv å:\n1. Lukk dette vinduet\n2. Logg ut\n3. Logg inn på nytt\n4. Hvis problemet fortsetter: Prøv en annen nettleser');
                 return;
             }
 
+            if (!currentUser.Epost) {
+                console.error('currentUser.Epost is missing:', currentUser);
+                alert('FEIL: E-postadresse mangler i brukerdata.\n\nKontakt kurs@dssn.no for hjelp.');
+                return;
+            }
+
+            if (!currentAuthUser) {
+                console.error('currentAuthUser is null - user not authenticated with Firebase');
+                alert('FEIL: Firebase-autentisering feilet.\n\nPrøv å:\n1. Logg ut\n2. Logg inn på nytt\n3. Hvis problemet fortsetter: Kontakt kurs@dssn.no');
+                return;
+            }
+
+            const btn = document.getElementById('gdprAcceptBtn');
+            btn.disabled = true;
+            btn.textContent = 'Lagrer...';
+
             try {
                 const docId = emailToDocId(currentUser.Epost);
-                await db.collection('gdpr_consent').doc(docId).set({
+                console.log('Attempting to save GDPR consent for docId:', docId);
+                
+                const consentData = {
                     accepted: true,
                     acceptedDate: new Date().toISOString(),
                     email: currentUser.Epost,
-                    name: currentUser.Navn
-                });
+                    name: currentUser.Navn,
+                    uid: currentAuthUser.uid
+                };
+                
+                console.log('Consent data:', consentData);
+                
+                await db.collection('gdpr_consent').doc(docId).set(consentData);
+                
+                console.log('GDPR consent saved successfully');
 
                 document.getElementById('gdprModal').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
@@ -900,8 +935,24 @@
                 loadActivities();
                 startSessionMonitoring();
             } catch (error) {
-                console.error('GDPR save error:', error);
-                alert('Feil ved lagring av samtykke. Prøv igjen.');
+                console.error('GDPR save error - Full error object:', error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                
+                let errorMsg = 'Feil ved lagring av samtykke:\n\n';
+                
+                if (error.code === 'permission-denied') {
+                    errorMsg += 'TILGANGSFEIL: Du har ikke tilgang til å lagre data.\n\nDette kan skyldes:\n1. Firebase-regler blokkerer deg\n2. Du er ikke riktig autentisert\n\nKontakt kurs@dssn.no med denne feilkoden: PERM-DENIED';
+                } else if (error.code === 'unavailable') {
+                    errorMsg += 'NETTVERKSFEIL: Kunne ikke koble til databasen.\n\nSjekk internett-tilkoblingen din og prøv igjen.';
+                } else {
+                    errorMsg += error.message + '\n\nFeilkode: ' + (error.code || 'UNKNOWN') + '\n\nKontakt kurs@dssn.no hvis problemet fortsetter.';
+                }
+                
+                alert(errorMsg);
+                
+                btn.disabled = false;
+                btn.textContent = 'Aksepter og fortsett';
             }
         }
 
