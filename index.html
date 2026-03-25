@@ -115,23 +115,35 @@
             grid-template-columns: repeat(5, 1fr);
             gap: 15px;
             margin-bottom: 30px;
+            align-items: stretch;
         }
         .stat-card {
             background: var(--dssn-gray);
-            padding: 20px;
+            padding: 15px 10px;
             border-radius: 10px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
         }
-        .stat-card h3 { 
-            color: var(--text-gray); 
-            font-size: 0.85em; 
-            margin-bottom: 10px; 
-            min-height: 2.5em;
+        .stat-card h3 {
+            color: var(--text-gray);
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .value { color: var(--dssn-yellow); font-size: 2.2em; font-weight: 700; cursor: help; }
+        .value {
+            color: var(--dssn-yellow);
+            font-size: 2em;
+            font-weight: 700;
+            cursor: help;
+            word-break: break-word;
+        }
         .activity-form {
             background: var(--dssn-gray);
             padding: 30px;
@@ -240,25 +252,35 @@
         }
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
-            .user-info { 
-                flex-direction: column; 
+            .user-info {
+                flex-direction: column;
                 gap: 15px;
                 align-items: flex-start;
             }
             .user-info > div:last-child {
                 width: 100%;
-                display: flex;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 10px;
-                flex-wrap: wrap;
+            }
+            .user-info > div:last-child button {
+                width: 100%;
+                margin: 0;
             }
             .login-screen h1 { font-size: 1.8em; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid .stat-card:last-child {
+                grid-column: 1 / -1;
+            }
+            .value { font-size: 1.8em; }
         }
         @media (max-width: 480px) {
             .login-screen h1 { font-size: 1.5em; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .stat-card h3 { font-size: 0.8em; }
-            .value { font-size: 2em; }
+            .value { font-size: 1.6em; }
         }
     </style>
 </head>
@@ -329,10 +351,10 @@
         <div id="gdprModal" class="gdpr-modal">
             <div class="gdpr-content">
                 <h2>Personvern og samtykke</h2>
-                
+
                 <h3>Behandling av personopplysninger</h3>
                 <p>DSSN Instruktørportal behandler følgende personopplysninger om deg:</p>
-                
+
                 <p><strong>Grunnleggende informasjon:</strong></p>
                 <ul>
                     <li>Navn</li>
@@ -341,7 +363,7 @@
                     <li>Region</li>
                     <li>Instruktørnummer</li>
                 </ul>
-                
+
                 <p><strong>Aktivitetsdata:</strong></p>
                 <ul>
                     <li>Registrerte kurs og treninger</li>
@@ -349,7 +371,7 @@
                     <li>Poengberegninger</li>
                     <li>Instruktørstatus</li>
                 </ul>
-                
+
                 <h3>Formål og behandlingsgrunnlag</h3>
                 <p>Personopplysningene behandles for å:</p>
                 <ul>
@@ -359,7 +381,7 @@
                     <li>Generere instruktørbevis og aktivitetsrapporter</li>
                 </ul>
                 <p>Behandlingsgrunnlaget er <strong>samtykke</strong> (GDPR art. 6(1)(a)) og <strong>oppfyllelse av avtale</strong> (GDPR art. 6(1)(b)) knyttet til ditt instruktørverv i DSSN.</p>
-                
+
                 <h3>Lagring og sikkerhet</h3>
                 <ul>
                     <li>Data lagres i Firebase (Google Cloud Platform) med kryptering</li>
@@ -367,7 +389,7 @@
                     <li>DSSN-administratorer har tilgang for administrasjonsformål</li>
                     <li>Data slettes ikke automatisk, men du kan når som helst be om sletting</li>
                 </ul>
-                
+
                 <h3>Dine rettigheter</h3>
                 <p>Du har rett til å:</p>
                 <ul>
@@ -378,21 +400,21 @@
                     <li><strong>Klage</strong> til Datatilsynet dersom du mener behandlingen er ulovlig</li>
                 </ul>
                 <p>For å utøve dine rettigheter, kontakt: <strong>kurs@dssn.no</strong></p>
-                
+
                 <h3>Samtykke</h3>
                 <p>Ved å akseptere nedenfor samtykker du til behandling av dine personopplysninger som beskrevet over.</p>
-                
+
                 <div class="gdpr-checkbox">
                     <input type="checkbox" id="gdprAcceptCheckbox">
                     <label for="gdprAcceptCheckbox">
                         Jeg har lest og forstått personvernerklæringen, og jeg samtykker til behandling av mine personopplysninger som beskrevet over.
                     </label>
                 </div>
-                
+
                 <button id="gdprAcceptBtn" class="btn" onclick="acceptGDPR()" disabled style="opacity: 0.5;">
                     Aksepter og fortsett
                 </button>
-                
+
                 <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-gray); font-style: italic;">
                     Du må akseptere for å bruke portalen. Uten samtykke kan du ikke registrere aktiviteter.
                 </p>
@@ -448,7 +470,7 @@
                 </div>
                 <div class="stat-card">
                     <h3>Instruktørstatus</h3>
-                    <div class="value" id="approvalStatus" style="font-size: 1.5em;">✅</div>
+                    <div class="value" id="approvalStatus" style="font-size: clamp(0.9em, 3vw, 1.6em); line-height: 1.2;">✅</div>
                 </div>
             </div>
             <form class="activity-form" onsubmit="registerActivity(event)">
@@ -616,22 +638,22 @@
 
         async function handleLogin(event) {
             event.preventDefault();
-            
+
             if (loginBlockedUntil && new Date() < loginBlockedUntil) {
                 const remainingSeconds = Math.ceil((loginBlockedUntil - new Date()) / 1000);
                 showAlert('loginAlert', `For mange forsøk. Prøv igjen om ${remainingSeconds} sekunder.`, 'error');
                 return;
             }
-            
+
             if (!instructors || instructors.length === 0) {
                 showAlert('loginAlert', 'Vennligst vent mens data laster...', 'info');
                 return;
             }
-            
+
             const email = document.getElementById('loginEmail').value.toLowerCase().trim();
             const password = document.getElementById('loginPassword').value.trim();
             const instructor = instructors.find(i => i.Epost.toLowerCase() === email);
-            
+
             if (!instructor) {
                 loginAttempts++;
                 if (loginAttempts >= 5) {
@@ -642,22 +664,20 @@
                 }
                 return;
             }
-            
+
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                
+
                 loginAttempts = 0;
                 loginBlockedUntil = null;
                 currentAuthUser = userCredential.user;
                 currentUser = instructor;
-                console.log('handleLogin: Set currentUser to:', currentUser);
-                console.log('handleLogin: Set currentAuthUser to:', currentAuthUser);
                 completeLogin();
-                
+
             } catch (error) {
                 console.error('Login error:', error);
                 loginAttempts++;
-                
+
                 if (loginAttempts >= 5) {
                     loginBlockedUntil = new Date(new Date().getTime() + 5 * 60 * 1000);
                     showAlert('loginAlert', 'For mange mislykkede forsøk. Prøv igjen om 5 minutter.', 'error');
@@ -679,7 +699,7 @@
 
         async function activateUser(event) {
             event.preventDefault();
-            
+
             const email = document.getElementById('actEmail').value.toLowerCase().trim();
             const code = document.getElementById('actCode').value.trim();
             const pass1 = document.getElementById('actPass1').value.trim();
@@ -704,7 +724,7 @@
 
             try {
                 const passwordDoc = await db.collection('passwords').doc(email).get();
-                
+
                 if (!passwordDoc.exists) {
                     showAlert('activationAlert', 'Ingen aktiverings-kode funnet. Kontakt admin.', 'error');
                     return;
@@ -747,10 +767,8 @@
 
                 currentAuthUser = userCredential.user;
                 currentUser = instructor;
-                console.log('activateUser: Set currentUser to:', currentUser);
-                console.log('activateUser: Set currentAuthUser to:', currentAuthUser);
                 hideActivation();
-                
+
                 showGDPRModal();
 
             } catch (error) {
@@ -760,17 +778,13 @@
         }
 
         async function completeLogin() {
-            console.log('completeLogin called, currentUser:', currentUser);
-            console.log('completeLogin called, currentAuthUser:', currentAuthUser);
-            
             const gdprAccepted = await checkGDPRConsent(currentUser.Epost);
-            console.log('GDPR already accepted:', gdprAccepted);
-            
+
             if (!gdprAccepted) {
                 showGDPRModal();
                 return;
             }
-            
+
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').classList.add('active');
             document.getElementById('userName').textContent = currentUser.Navn;
@@ -785,13 +799,13 @@
         function setDateLimits() {
             const dateInput = document.getElementById('activityDate');
             const today = new Date();
-            
+
             const maxDate = new Date(today);
             maxDate.setDate(today.getDate() + 7);
-            
+
             const minDate = new Date(today);
             minDate.setMonth(today.getMonth() - 2);
-            
+
             dateInput.max = maxDate.toISOString().split('T')[0];
             dateInput.min = minDate.toISOString().split('T')[0];
             dateInput.value = today.toISOString().split('T')[0];
@@ -839,7 +853,7 @@
                 .replace(/\[/g, '_')
                 .replace(/\]/g, '_');
         }
-        
+
         async function checkGDPRConsent(email) {
             try {
                 const docId = emailToDocId(email);
@@ -862,7 +876,7 @@
         let gdprCheckboxInitialized = false;
         function initGDPRCheckbox() {
             if (gdprCheckboxInitialized) return;
-            
+
             document.getElementById('gdprAcceptCheckbox').addEventListener('change', function() {
                 const btn = document.getElementById('gdprAcceptBtn');
                 if (this.checked) {
@@ -883,22 +897,17 @@
                 return;
             }
 
-            console.log('acceptGDPR called, currentUser:', currentUser);
-            
             if (!currentUser) {
-                console.error('currentUser is null or undefined');
-                alert('FEIL: Brukerdata ikke lastet (currentUser er null).\n\nDette kan skyldes:\n1. Du har ikke logget inn riktig\n2. Nettleseren blokkerer data\n\nPrøv å:\n1. Lukk dette vinduet\n2. Logg ut\n3. Logg inn på nytt\n4. Hvis problemet fortsetter: Prøv en annen nettleser');
+                alert('FEIL: Brukerdata ikke lastet (currentUser er null).\n\nPrøv å:\n1. Lukk dette vinduet\n2. Logg ut\n3. Logg inn på nytt\n4. Hvis problemet fortsetter: Prøv en annen nettleser');
                 return;
             }
 
             if (!currentUser.Epost) {
-                console.error('currentUser.Epost is missing:', currentUser);
                 alert('FEIL: E-postadresse mangler i brukerdata.\n\nKontakt kurs@dssn.no for hjelp.');
                 return;
             }
 
             if (!currentAuthUser) {
-                console.error('currentAuthUser is null - user not authenticated with Firebase');
                 alert('FEIL: Firebase-autentisering feilet.\n\nPrøv å:\n1. Logg ut\n2. Logg inn på nytt\n3. Hvis problemet fortsetter: Kontakt kurs@dssn.no');
                 return;
             }
@@ -909,8 +918,7 @@
 
             try {
                 const docId = emailToDocId(currentUser.Epost);
-                console.log('Attempting to save GDPR consent for docId:', docId);
-                
+
                 const consentData = {
                     accepted: true,
                     acceptedDate: new Date().toISOString(),
@@ -918,12 +926,8 @@
                     name: currentUser.Navn,
                     uid: currentAuthUser.uid
                 };
-                
-                console.log('Consent data:', consentData);
-                
+
                 await db.collection('gdpr_consent').doc(docId).set(consentData);
-                
-                console.log('GDPR consent saved successfully');
 
                 document.getElementById('gdprModal').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
@@ -935,22 +939,20 @@
                 loadActivities();
                 startSessionMonitoring();
             } catch (error) {
-                console.error('GDPR save error - Full error object:', error);
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
-                
+                console.error('GDPR save error:', error);
+
                 let errorMsg = 'Feil ved lagring av samtykke:\n\n';
-                
+
                 if (error.code === 'permission-denied') {
-                    errorMsg += 'TILGANGSFEIL: Du har ikke tilgang til å lagre data.\n\nDette kan skyldes:\n1. Firebase-regler blokkerer deg\n2. Du er ikke riktig autentisert\n\nKontakt kurs@dssn.no med denne feilkoden: PERM-DENIED';
+                    errorMsg += 'TILGANGSFEIL: Du har ikke tilgang til å lagre data.\n\nKontakt kurs@dssn.no med denne feilkoden: PERM-DENIED';
                 } else if (error.code === 'unavailable') {
                     errorMsg += 'NETTVERKSFEIL: Kunne ikke koble til databasen.\n\nSjekk internett-tilkoblingen din og prøv igjen.';
                 } else {
                     errorMsg += error.message + '\n\nFeilkode: ' + (error.code || 'UNKNOWN') + '\n\nKontakt kurs@dssn.no hvis problemet fortsetter.';
                 }
-                
+
                 alert(errorMsg);
-                
+
                 btn.disabled = false;
                 btn.textContent = 'Aksepter og fortsett';
             }
@@ -973,57 +975,55 @@
         function updateStats() {
             const currentYear = new Date().getFullYear();
             const lastYear = currentYear - 1;
-            
+
             const yearActivities = activities.filter(a => new Date(a.Dato).getFullYear() === currentYear);
             const lastYearActivities = activities.filter(a => new Date(a.Dato).getFullYear() === lastYear);
-            
+
             const totalPoints = yearActivities.reduce((sum, a) => sum + (a.Poeng || 0), 0);
             const lastYearPoints = lastYearActivities.reduce((sum, a) => sum + (a.Poeng || 0), 0);
             const totalPointsAllTime = activities.reduce((sum, a) => sum + (a.Poeng || 0), 0);
             const totalCourses = yearActivities.filter(a => a.Type === 'Godkjenningskurs' || a.Type === 'Sikkerhetskurs').length;
             const totalTrainings = yearActivities.filter(a => a.Type === 'Organisert trening').length;
-            
+
             document.getElementById('totalPoints').textContent = totalPoints;
             document.getElementById('totalPointsAllTime').textContent = totalPointsAllTime;
             document.getElementById('totalCourses').textContent = totalCourses;
             document.getElementById('totalTrainings').textContent = totalTrainings;
-            
+
             const approvalDiv = document.getElementById('approvalStatus');
             const isActive = lastYearPoints >= 6 || totalPoints >= 6;
             const pointsNeeded = Math.max(0, 6 - totalPoints);
-            
+
             const messages = {
                 0: '🎉 Gratulerer! Du har oppnådd godkjent instruktørstatus for i år! Fortsett det gode arbeidet!',
-                1: 'Du mangler kun ett poeng! Hva med å arrangere en organisert trening i klubben? Dette sikrer at du får beholde instruktørstatusen din, og dine medskyttere i klubben får en kvalitetstrening med godkjent instruktør.',
-                2: 'Du mangler to poeng. Kjør et sikkerhetskurs eller godkjenningskurs for å nå målet, eller to organiserte treninger.',
-                3: 'Du mangler tre poeng. Ett sikkerhetskurs eller godkjenningskurs setter deg halvveis! Fortsett det gode arbeidet.',
+                1: 'Du mangler kun ett poeng! Hva med å arrangere en organisert trening i klubben?',
+                2: 'Du mangler to poeng. Kjør et sikkerhetskurs eller godkjenningskurs for å nå målet.',
+                3: 'Du mangler tre poeng. Ett sikkerhetskurs eller godkjenningskurs setter deg halvveis!',
                 4: 'Du mangler fire poeng. To kurs eller fire organiserte treninger, så er du i mål!',
-                5: 'Du mangler fem poeng. Kom i gang! Kombiner kurs og organiserte treninger for å nå seks poeng.',
-                6: 'Du har ikke registrert noen aktiviteter ennå. Registrer dine kurs og treninger for å opprettholde instruktørstatusen. Du trenger seks poeng i kalenderåret.'
+                5: 'Du mangler fem poeng. Kom i gang! Kombiner kurs og organiserte treninger.',
+                6: 'Du har ikke registrert noen aktiviteter ennå. Du trenger seks poeng i kalenderåret.'
             };
-            
+
             if (isActive) {
                 approvalDiv.textContent = 'OK';
                 approvalDiv.style.color = '#4CAF50';
                 if (totalPoints >= 6) {
                     approvalDiv.title = `Godkjent! Du har ${totalPoints} poeng i år.`;
                 } else if (lastYearPoints >= 6) {
-                    approvalDiv.title = `Godkjent fra ${lastYear} (${lastYearPoints}p). Du er godkjent til årsskiftet. Du har ${totalPoints} poeng i år - trenger ${pointsNeeded} til for å sikre status neste år.`;
+                    approvalDiv.title = `Godkjent fra ${lastYear} (${lastYearPoints}p). Du har ${totalPoints} poeng i år.`;
                 }
             } else {
                 approvalDiv.textContent = 'IKKE GODKJENT';
                 approvalDiv.style.color = '#f44336';
                 approvalDiv.title = totalPoints > 0 ? messages[pointsNeeded] : messages[6];
             }
-            approvalDiv.style.fontSize = '2.2em';
-            approvalDiv.style.fontWeight = '700';
         }
 
         function toggleSection(sectionId) {
             const section = document.getElementById(sectionId);
             const header = section.previousElementSibling;
             const arrow = header.querySelector('h3');
-            
+
             if (section.style.display === 'none') {
                 section.style.display = 'block';
                 arrow.textContent = arrow.textContent.replace('▶', '▼');
@@ -1036,7 +1036,7 @@
         function displayActivities() {
             const courses = activities.filter(a => a.Type !== 'Organisert trening');
             const trainings = activities.filter(a => a.Type === 'Organisert trening');
-            
+
             const coursesContainer = document.getElementById('coursesListContent');
             if (courses.length === 0) {
                 coursesContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen kurs registrert ennå.</p>';
@@ -1047,7 +1047,7 @@
                     const createdAt = a.CreatedAt ? (a.CreatedAt.toDate ? a.CreatedAt.toDate() : new Date(a.CreatedAt)) : null;
                     const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
                     const canEdit = hoursSinceCreation <= 48;
-                    
+
                     let buttonsHtml = '';
                     if (canEdit && a.id) {
                         buttonsHtml = '<div style="margin-top: 10px; display: flex; gap: 10px;">' +
@@ -1055,7 +1055,7 @@
                             '<button onclick="deleteActivity(\'' + a.id + '\')" style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">🗑️ Slett</button>' +
                             '</div>';
                     }
-                    
+
                     return '<div class="activity-item">' +
                         '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
                         '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
@@ -1066,7 +1066,7 @@
                         '</div>';
                 }).join('');
             }
-            
+
             const trainingsContainer = document.getElementById('trainingsListContent');
             if (trainings.length === 0) {
                 trainingsContainer.innerHTML = '<p style="color: var(--text-gray);">Ingen treninger registrert ennå.</p>';
@@ -1077,7 +1077,7 @@
                     const createdAt = a.CreatedAt ? (a.CreatedAt.toDate ? a.CreatedAt.toDate() : new Date(a.CreatedAt)) : null;
                     const hoursSinceCreation = createdAt ? (now - createdAt) / (1000 * 60 * 60) : 999;
                     const canEdit = hoursSinceCreation <= 48;
-                    
+
                     let buttonsHtml = '';
                     if (canEdit && a.id) {
                         buttonsHtml = '<div style="margin-top: 10px; display: flex; gap: 10px;">' +
@@ -1085,7 +1085,7 @@
                             '<button onclick="deleteActivity(\'' + a.id + '\')" style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9em;">🗑️ Slett</button>' +
                             '</div>';
                     }
-                    
+
                     return '<div class="activity-item">' +
                         '<h4>' + escapeHtml(a.Type) + ' - ' + a.Poeng + 'p</h4>' +
                         '<p><strong>Dato:</strong> ' + new Date(a.Dato).toLocaleDateString('no-NO') + '</p>' +
@@ -1104,21 +1104,21 @@
                 alert('Fant ikke aktiviteten');
                 return;
             }
-            
+
             document.getElementById('activityType').value = activity.Type;
             document.getElementById('activityDate').value = activity.Dato;
             document.getElementById('activityDescription').value = activity.Beskrivelse;
             document.getElementById('activityLocation').value = activity.Sted;
             document.getElementById('activityParticipants').value = activity.AntallDeltakere;
             updatePoints();
-            
+
             const form = document.querySelector('.activity-form');
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.textContent = '💾 Oppdater aktivitet';
             submitBtn.style.background = '#FFA500';
-            
+
             form.dataset.editingId = activityId;
-            
+
             form.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -1126,7 +1126,7 @@
             if (!confirm('Er du sikker på at du vil slette denne aktiviteten?')) {
                 return;
             }
-            
+
             try {
                 await db.collection('activities').doc(activityId).delete();
                 alert('✅ Aktivitet slettet!');
@@ -1145,43 +1145,43 @@
 
         async function registerActivity(event) {
             event.preventDefault();
-            
+
             const type = document.getElementById('activityType').value;
             const date = document.getElementById('activityDate').value;
             const description = document.getElementById('activityDescription').value.trim();
             const location = document.getElementById('activityLocation').value.trim();
             const participantsValue = document.getElementById('activityParticipants').value;
-            
+
             const errors = [];
-            
+
             if (!type || type === '-- Velg type --') {
                 errors.push('❌ Velg type aktivitet');
             }
-            
+
             if (!date) {
                 errors.push('❌ Velg dato');
             }
-            
+
             if (!description || description.length < 10) {
                 errors.push('❌ Beskrivelse må være minst 10 tegn');
             }
-            
+
             if (!location || location.length < 3) {
                 errors.push('❌ Sted må være minst 3 tegn');
             }
-            
+
             if (!participantsValue || participantsValue === '' || isNaN(participantsValue)) {
                 errors.push('❌ Fyll inn antall deltakere (tall)');
             }
-            
+
             if (errors.length > 0) {
                 alert(errors.join('\n'));
                 return;
             }
-            
+
             const participants = parseInt(participantsValue);
             const points = parseInt(document.getElementById('activityType').selectedOptions[0].getAttribute('data-points'));
-            
+
             const activity = {
                 InstruktørID: currentUser.InstruktørID,
                 Instruktør: currentUser.Navn,
@@ -1194,16 +1194,16 @@
                 RegistrertTidspunkt: firebase.firestore.FieldValue.serverTimestamp(),
                 CreatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-            
+
             const form = event.target;
             const editingId = form.dataset.editingId;
-            
+
             try {
                 if (editingId) {
                     delete activity.CreatedAt;
                     await db.collection('activities').doc(editingId).update(activity);
                     alert('✅ Aktivitet oppdatert!');
-                    
+
                     const submitBtn = form.querySelector('button[type="submit"]');
                     submitBtn.textContent = '📝 Registrer aktivitet';
                     submitBtn.style.background = 'var(--dssn-yellow)';
@@ -1212,7 +1212,7 @@
                     await db.collection('activities').add(activity);
                     alert('✅ Aktivitet registrert!');
                 }
-                
+
                 event.target.reset();
                 document.getElementById('currentPoints').textContent = '0';
                 await loadActivities();
@@ -1238,7 +1238,7 @@
             let filteredActivities;
             let title;
             let filename;
-            
+
             if (type === 'courses') {
                 filteredActivities = activities.filter(a => a.Type !== 'Organisert trening');
                 title = 'DSSN Instruktørportal - Mine kurs';
@@ -1252,7 +1252,7 @@
                 title = 'DSSN Instruktørportal - Mine aktiviteter';
                 filename = 'Mine_aktiviteter';
             }
-            
+
             if (filteredActivities.length === 0) {
                 const typeText = type === 'courses' ? 'kurs' : type === 'trainings' ? 'treninger' : 'aktiviteter';
                 alert('Du har ingen ' + typeText + ' å laste ned ennå.');
@@ -1260,7 +1260,7 @@
             }
 
             const wb = XLSX.utils.book_new();
-            
+
             const data = [
                 [title],
                 [''],
@@ -1273,7 +1273,7 @@
             ];
 
             const sorted = filteredActivities.slice().sort((a, b) => new Date(b.Dato) - new Date(a.Dato));
-            
+
             sorted.forEach(a => {
                 data.push([
                     new Date(a.Dato).toLocaleDateString('no-NO'),
@@ -1290,7 +1290,7 @@
             data.push(['Totalt poeng (alle år):', filteredActivities.reduce((sum, a) => sum + a.Poeng, 0)]);
 
             const ws = XLSX.utils.aoa_to_sheet(data);
-            
+
             ws['!cols'] = [
                 {wch: 12},
                 {wch: 25},
@@ -1313,14 +1313,12 @@
                     return;
                 }
 
-                console.log('Starter generering av instruktørkort...');
-                
                 const { jsPDF } = window.jspdf;
                 if (!jsPDF) {
                     alert('Feil: PDF-bibliotek ikke lastet. Refresh siden.');
                     return;
                 }
-                
+
                 const pdf = new jsPDF({
                     orientation: 'landscape',
                     unit: 'mm',
@@ -1367,54 +1365,52 @@
                         pdf.setFont('helvetica', 'bold');
                         pdf.text(currentUser.Navn, 20, 15);
 
-                pdf.setFontSize(9);
-                pdf.setFont('helvetica', 'normal');
-                pdf.text(currentUser.Klubb || 'Ingen klubb', 20, 20);
-                pdf.text(currentUser.Region, 20, 24);
+                        pdf.setFontSize(9);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text(currentUser.Klubb || 'Ingen klubb', 20, 20);
+                        pdf.text(currentUser.Region, 20, 24);
 
-                pdf.setFontSize(11);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text('Instruktørnummer:', 20, 32);
-                pdf.setTextColor(255, 215, 0);
-                pdf.setFontSize(16);
-                pdf.text(String(currentUser.Nummer).padStart(3, '0'), 20, 38);
+                        pdf.setFontSize(11);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.text('Instruktørnummer:', 20, 32);
+                        pdf.setTextColor(255, 215, 0);
+                        pdf.setFontSize(16);
+                        pdf.text(String(currentUser.Nummer).padStart(3, '0'), 20, 38);
 
-                const currentYear = new Date().getFullYear();
-                const lastYear = currentYear - 1;
-                
-                const yearPoints = activities.filter(a => new Date(a.Dato).getFullYear() === currentYear).reduce((sum, a) => sum + a.Poeng, 0);
-                const lastYearPoints = activities.filter(a => new Date(a.Dato).getFullYear() === lastYear).reduce((sum, a) => sum + a.Poeng, 0);
-                const totalPoints = activities.reduce((sum, a) => sum + a.Poeng, 0);
-                
-                let status, statusColor;
-                if (lastYearPoints >= 6 || yearPoints >= 6) {
-                    status = 'AKTIV';
-                    statusColor = [76, 175, 80];
-                } else {
-                    status = 'INAKTIV';
-                    statusColor = [244, 67, 54];
-                }
+                        const currentYear = new Date().getFullYear();
+                        const lastYear = currentYear - 1;
 
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(9);
-                pdf.setFont('helvetica', 'normal');
-                pdf.text('Status:', 20, 45);
-                pdf.setTextColor(...statusColor);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text(status, 20, 49);
+                        const yearPoints = activities.filter(a => new Date(a.Dato).getFullYear() === currentYear).reduce((sum, a) => sum + a.Poeng, 0);
+                        const lastYearPoints = activities.filter(a => new Date(a.Dato).getFullYear() === lastYear).reduce((sum, a) => sum + a.Poeng, 0);
+                        const totalPoints = activities.reduce((sum, a) => sum + a.Poeng, 0);
 
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(8);
-                pdf.setFont('helvetica', 'normal');
-                pdf.text(`${yearPoints}/6 poeng (Totalt: ${totalPoints})`, 45, 49);
+                        let status, statusColor;
+                        if (lastYearPoints >= 6 || yearPoints >= 6) {
+                            status = 'AKTIV';
+                            statusColor = [76, 175, 80];
+                        } else {
+                            status = 'INAKTIV';
+                            statusColor = [244, 67, 54];
+                        }
 
-                pdf.setFontSize(6);
-                pdf.setTextColor(150, 150, 150);
-                pdf.text('Dynamisk Sportsskyting Norge', 42.8, 52, { align: 'center' });
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.setFontSize(9);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text('Status:', 20, 45);
+                        pdf.setTextColor(...statusColor);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.text(status, 20, 49);
 
-                console.log('Lagrer PDF...');
-                pdf.save(`DSSN_Instruktorkort_${currentUser.Nummer}.pdf`);
-                console.log('PDF lagret!');
+                        pdf.setTextColor(255, 255, 255);
+                        pdf.setFontSize(8);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text(`${yearPoints}/6 poeng (Totalt: ${totalPoints})`, 45, 49);
+
+                        pdf.setFontSize(6);
+                        pdf.setTextColor(150, 150, 150);
+                        pdf.text('Dynamisk Sportsskyting Norge', 42.8, 52, { align: 'center' });
+
+                        pdf.save(`DSSN_Instruktorkort_${currentUser.Nummer}.pdf`);
                     } catch (error) {
                         console.error('Feil i finishCard:', error);
                         alert('Feil ved generering av kort: ' + error.message);
