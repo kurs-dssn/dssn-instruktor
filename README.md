@@ -1,2 +1,0 @@
-# dssn-instruktor
-DSSN Instruktørportal
